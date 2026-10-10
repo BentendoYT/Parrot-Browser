@@ -72,7 +72,7 @@ jobs:
       - name: Build Windows package
         shell: bash
         run: |
-          python3 .github/scripts/ci-monitor.py run "$DIAG_DIR" 10 &
+          python3 scripts/ci-monitor.py run "$DIAG_DIR" 10 &
           MON_PID=$!
           trap 'kill "$MON_PID" 2>/dev/null || true; wait "$MON_PID" 2>/dev/null || true' EXIT
           make test-windows 2>&1 | tee "$DIAG_DIR/build.log"
@@ -100,7 +100,7 @@ jobs:
             grep -nEi 'signal: 9|SIGKILL|Killed|No space left|out of memory' "$DIAG_DIR/build.log" | head -n 200 > "$DIAG_DIR/build-errors.txt" || true
             gzip -9 "$DIAG_DIR/build.log"
           fi
-          python3 .github/scripts/ci-monitor.py summary "$DIAG_DIR" | tee -a "$GITHUB_STEP_SUMMARY"
+          python3 scripts/ci-monitor.py summary "$DIAG_DIR" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Upload diagnostics
         if: always()
