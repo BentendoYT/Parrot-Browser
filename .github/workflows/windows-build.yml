@@ -11,6 +11,10 @@ jobs:
   build-windows:
     runs-on: ubuntu-latest
 
+    env:
+      HOME: /root
+      MOZBUILD_STATE_PATH: /root/.mozbuild
+
     container:
       image: librewolf.dev/librewolf/bsys6:windows
 
