@@ -1,40 +1,126 @@
-
 name: Parrot Browser - Windows Build
 
 on:
   workflow_dispatch:
+    inputs:
+      parallel_jobs:
+        description: "Mozilla build parallelism (MOZ_PARALLEL_BUILD in the mozconfig). Lower = less RAM, slower."
+        required: false
+        default: "3"
+        type: string
+      debug_symbols:
+        description: "Keep debug symbols (rustc debuginfo=2, -g). Needs far more RAM and disk."
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
 
 jobs:
   build-windows:
-    runs-on: ubuntu-latest
-
-    env:
-      HOME: /root
-      MOZBUILD_STATE_PATH: /root/.mozbuild
-      MOZ_PARALLEL_BUILD: "2"
+    # Standard public-repo runner: 4 vCPU / 16 GB. Set repo variable BUILD_RUNNER
+    # (Settings > Variables) to use a larger or self-hosted runner.
+    runs-on: ${{ vars.BUILD_RUNNER || 'ubuntu-24.04' }}
+    timeout-minutes: 360
 
     container:
       image: librewolf.dev/librewolf/bsys6:windows
+
+    env:
+      # bsys6 derives $MOZBUILD from $HOME; GitHub overrides HOME in container jobs.
+      HOME: /root
+      MOZBUILD_STATE_PATH: /root/.mozbuild
+      DIAG_DIR: ci-diagnostics
 
     steps:
       - name: Checkout source
         uses: actions/checkout@v6
 
+      - name: Environment snapshot
+        shell: bash
+        run: |
+          mkdir -p "$DIAG_DIR"
+          {
+            echo "== uname =="; uname -a
+            echo "== nproc =="; nproc
+            echo "== meminfo =="; grep -E 'MemTotal|MemAvailable|SwapTotal|SwapFree' /proc/meminfo
+            echo "== cgroup =="
+            for f in memory.max memory.swap.max; do echo -n "$f: "; cat /sys/fs/cgroup/$f 2>/dev/null || echo n/a; done
+            echo "== disk =="; df -h . /tmp /root 2>/dev/null
+            echo "== bsys6 HEAD =="; git ls-remote https://librewolf.dev/librewolf/bsys6.git HEAD 2>&1 || true
+            echo "== rustc =="; rustc --version 2>&1 || true
+          } 2>&1 | tee "$DIAG_DIR/environment.txt"
+
       - name: Fetch Firefox source
         run: make fetch FF_CHANNEL=releases FF_BUILD=build1
 
+      - name: Apply CI resource tuning to mozconfig
+        shell: bash
+        env:
+          PARALLEL_JOBS: ${{ inputs.parallel_jobs }}
+          KEEP_DEBUG_SYMBOLS: ${{ inputs.debug_symbols }}
+        run: |
+          [[ "$PARALLEL_JOBS" =~ ^[1-9][0-9]?$ ]] || { echo "parallel_jobs must be a number"; exit 1; }
+          {
+            echo
+            echo "# --- CI resource tuning (appended by windows-build.yml) ---"
+            echo "mk_add_options MOZ_PARALLEL_BUILD=${PARALLEL_JOBS}"
+            if [ "$KEEP_DEBUG_SYMBOLS" != "true" ]; then
+              echo "ac_add_options --disable-debug-symbols"
+            fi
+          } >> assets/mozconfig.new
+          tail -n 6 assets/mozconfig.new
+
       - name: Build Windows package
-        run: make test-windows
+        shell: bash
+        run: |
+          python3 .github/scripts/ci-monitor.py run "$DIAG_DIR" 10 &
+          MON_PID=$!
+          trap 'kill "$MON_PID" 2>/dev/null || true; wait "$MON_PID" 2>/dev/null || true' EXIT
+          make test-windows 2>&1 | tee "$DIAG_DIR/build.log"
+
+      - name: Collect diagnostics
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p "$DIAG_DIR/mozbuild"
+          # testing.mk only runs `rm -rf bsys6` after success, so on failure this still exists.
+          src=$(ls -d bsys6/SOURCEDIR/librewolf-*/ 2>/dev/null | head -n1 || true)
+          if [ -n "$src" ]; then
+            cp -v "${src}mozconfig" "$DIAG_DIR/mozconfig.used" || true
+            for obj in "${src}"obj-*; do
+              [ -d "$obj/.mozbuild/logs" ] && cp -r "$obj/.mozbuild/logs" "$DIAG_DIR/mozbuild/" || true
+              [ -f "$obj/config.log" ] && cp "$obj/config.log" "$DIAG_DIR/mozbuild/" || true
+              du -sh "$obj" >> "$DIAG_DIR/sizes.txt" 2>/dev/null || true
+            done
+          fi
+          cat /sys/fs/cgroup/memory.events > "$DIAG_DIR/cgroup-memory-events.txt" 2>/dev/null || true
+          cat /sys/fs/cgroup/memory.peak   > "$DIAG_DIR/cgroup-memory-peak.txt"   2>/dev/null || true
+          df -h > "$DIAG_DIR/df-final.txt" || true
+          if [ -f "$DIAG_DIR/build.log" ]; then
+            tail -n 3000 "$DIAG_DIR/build.log" > "$DIAG_DIR/build-tail.log"
+            grep -nEi 'signal: 9|SIGKILL|Killed|No space left|out of memory' "$DIAG_DIR/build.log" | head -n 200 > "$DIAG_DIR/build-errors.txt" || true
+            gzip -9 "$DIAG_DIR/build.log"
+          fi
+          python3 .github/scripts/ci-monitor.py summary "$DIAG_DIR" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parrot-build-diagnostics
+          path: ci-diagnostics/
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: parrot-browser-windows
           path: |
-            *.zip
+            librewolf-*.zip
             mozconfig.txt
           if-no-files-found: error
           retention-days: 7
+          compression-level: 0
