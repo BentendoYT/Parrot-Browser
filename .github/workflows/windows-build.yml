@@ -14,6 +14,7 @@ jobs:
     env:
       HOME: /root
       MOZBUILD_STATE_PATH: /root/.mozbuild
+      MOZ_PARALLEL_BUILD: "2"
 
     container:
       image: librewolf.dev/librewolf/bsys6:windows
