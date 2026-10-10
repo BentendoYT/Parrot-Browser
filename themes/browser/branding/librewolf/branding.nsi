@@ -1,4 +1,4 @@
-# This Source Code Form is subject to the terms of the Mozilla Public
+﻿# This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
@@ -8,11 +8,11 @@
 
 # BrandFullNameInternal is used for some registry and file system values
 # instead of BrandFullName and typically should not be modified.
-!define BrandFullNameInternal "LibreWolf"
-!define BrandFullName         "LibreWolf"
-!define CompanyName           "LibreWolf"
-!define URLInfoAbout          "https://www.libreWolf.gitlab.io"
-!define HelpLink              "https://github.com/LibreWolf-Browser"
+!define BrandFullNameInternal "Parrot Browser"
+!define BrandFullName         "Parrot Browser"
+!define CompanyName           "Parrot Browser"
+!define URLInfoAbout          "https://bentendo.pages.dev/parrot/"
+!define HelpLink              "https://bentendo.pages.dev/parrot/"
 
 !define URLStubDownloadX86 "https://github.com/LibreWolf-Browser/LibreWolf/releases"
 !define URLStubDownloadAMD64 "https://github.com/LibreWolf-Browser/LibreWolf/releases"
