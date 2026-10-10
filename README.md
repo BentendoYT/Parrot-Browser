@@ -1,6 +1,6 @@
  <div align="center">
 
-![Parrot Logo](./patches/pref-pane/category-librewolf.svg)
+<img src="./patches/pref-pane/category-librewolf.svg" alt="Parrot Logo" width="256">
 
 # Parrot Browser
 
