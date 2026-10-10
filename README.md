@@ -1,12 +1,12 @@
-<div align="center">
+ <div align="center">
 
-![Librewolf Logo](./patches/pref-pane/category-librewolf.svg)
+![Parrot Logo](./patches/pref-pane/category-librewolf.svg)
 
-# LibreWolf
+# Parrot Browser
 
-This repository contains all the patches and theming that make up LibreWolf,
-as well as the LibreWolf preferences (in [settings/](./settings)) and the
-scripts and Makefile to build LibreWolf.
+This repository contains all the patches and theming that make up Parrot Browser,
+as well as the Parrot Browser preferences (in [settings/](./settings)) and the
+scripts and Makefile to build Parrot Browser.
 
 </div>
 
@@ -20,7 +20,7 @@ graph LR
 
     FFSRC--Tarball--->Source
 
-    subgraph LibreWolf/
+    subgraph Parrot Browser/
     Website(Website<br><br>- Documentation<br>- FAQ)
     subgraph Browser/
         Source(Source<br><br>- Patches<br>- Theming<br>- Settings<br>- Weblate<br>- Build scripts)
@@ -32,16 +32,16 @@ graph LR
     Website-->librewolf.net
     Source--"Source tarball"-->bsys6
     AppImage--".appimage"-->librewolf.net
-    bsys6--"Windows setup.exe"--->librewolf.net
-    bsys6--"Windows portable.zip"--->librewolf.net
-    bsys6--"Windows .msix"--->MS("Microsoft Store")
-    bsys6--"Windows .nupkg"--->Chocolatey
-    bsys6--"Linux binary tarball"--->Flathub
+    bsys6--"Windows setup.exe"---->librewolf.net
+    bsys6--"Windows portable.zip"---->librewolf.net
+    bsys6--"Windows .msix"---->MS("Microsoft Store")
+    bsys6--"Windows .nupkg"---->Chocolatey
+    bsys6--"Linux binary tarball"---->Flathub
     bsys6--"Linux binary tarball"--> AppImage
-    bsys6--"Linux .deb"--->repo.librewolf.net
-    bsys6--"Linux .rpm"--->repo.librewolf.net
-    bsys6--"Linux binary tarball<br>for 'librewolf-bin'"--> ArchGentoo
-    Source--"Source tarball<br>for 'librewolf'"-->ArchGentoo
+    bsys6--"Linux .deb"---->repo.librewolf.net
+    bsys6--"Linux .rpm"---->repo.librewolf.net
+    bsys6--"Linux binary tarball<br>for 'librewolf-bin'"---->ArchGentoo
+    Source--"Source tarball<br>for 'librewolf'"---->ArchGentoo
     ArchGentoo-->AUR_Overlay["AUR / Overlay"]
 ```
 
@@ -69,7 +69,7 @@ Previous:
 
 ## Build
 
-There are two ways to build LibreWolf.
+There are two ways to build Parrot Browser.
 You can either use the source tarball
 or compile directly with this repository.
 
@@ -84,7 +84,7 @@ or compile directly with this repository.
    cd <folder>
    ```
 
-2. Then, you have to bootstrap your system to be able to build LibreWolf.
+2. Then, you have to bootstrap your system to be able to build Parrot Browser.
    You only have to do this one time.
    It is done by running the following command:
 
@@ -92,7 +92,7 @@ or compile directly with this repository.
    ./mach --no-interactive bootstrap --application-choice=browser
    ```
 
-3. Build LibreWolf and then package or run it with the following commands:
+3. Build Parrot Browser and then package or run it with the following commands:
 
    ```bash
    ./mach build && ./mach package
@@ -116,15 +116,15 @@ or compile directly with this repository.
    git clone --recursive git@librewolf.dev:librewolf/source.git librewolf-source --depth=1 && cd librewolf-source
    ```
 
-2. Build LibreWolf source code,
-   also you have to bootstrap your system to be able to build LibreWolf.
+2. Build Parrot Browser source code,
+   also you have to bootstrap your system to be able to build Parrot Browser.
    You only have to do this one time.
 
    ```bash
    make dir && make bootstrap
    ```
 
-3. Package LibreWolf or run it with the following commands:
+3. Package Parrot Browser or run it with the following commands:
 
    ```bash
    make build && make package
@@ -134,8 +134,8 @@ or compile directly with this repository.
 
 ## Translations
 
-We use Weblate to localize all LibreWolf-specific strings.
-You can help us by translating LibreWolf into your language at
+We use Weblate to localize all Parrot Browser-specific strings.
+You can help us by translating Parrot Browser into your language at
 <https://translate.codeberg.org/engage/librewolf>.
 Here is the current translation status:
 
@@ -147,7 +147,7 @@ Here is the current translation status:
 
 ### Development: Creating a patch
 
-The easiest way to make patches is to go to the LibreWolf source folder:
+The easiest way to make patches is to go to the Parrot Browser source folder:
 
 ```bash
 cd librewolf-$(cat version)
@@ -162,7 +162,7 @@ and on the website we have links to the various issue trackers.
 
 ### Development: Existing patches
 
-The easiest way to make patches is to go to the LibreWolf source folder:
+The easiest way to make patches is to go to the Parrot Browser source folder:
 
 ```bash
 make fetch
@@ -190,7 +190,7 @@ Well, first of all:
 - Handy link: [Bugs Filed Today](https://bugzilla.mozilla.org/buglist.cgi?cmdtype=dorem&remaction=run&namedcmd=Bugs%20Filed%20Today&sharer_id=1&list_id=15939480).
 - The essential: [Firefox Source Tree Documentation](https://firefox-source-docs.mozilla.org/).
 
-Now that you have a patch in LibreWolf, that's not enough to upload to Mozilla.
+Now that you have a patch in Parrot Browser, that's not enough to upload to Mozilla.
 See, Mozilla only accepts patches against Nightly.
 So here is how to do that:
 
