@@ -19,8 +19,6 @@ permissions:
 
 jobs:
   build-windows:
-    # Standard public-repo runner: 4 vCPU / 16 GB. Set repo variable BUILD_RUNNER
-    # (Settings > Variables) to use a larger or self-hosted runner.
     runs-on: ${{ vars.BUILD_RUNNER || 'ubuntu-24.04' }}
     timeout-minutes: 360
 
@@ -28,7 +26,6 @@ jobs:
       image: librewolf.dev/librewolf/bsys6:windows
 
     env:
-      # bsys6 derives $MOZBUILD from $HOME; GitHub overrides HOME in container jobs.
       HOME: /root
       MOZBUILD_STATE_PATH: /root/.mozbuild
       DIAG_DIR: ci-diagnostics
