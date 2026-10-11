@@ -1,1 +1,1 @@
-about-librewolf = A LibreWolf a Firefox egyéni verziója, amelynek elsődleges célja az adatvédelem, a biztonság és a felhasználói szabadság.
+about-librewolf = A Parrot a LibreWolf egyéni változata, amelynek elsődleges célja az adatvédelem, a biztonság és a felhasználói szabadság.

@@ -1,1 +1,1 @@
-about-librewolf = LibreWolf ist eine angepasste Version von Firefox mit den Hauptzielen Datenschutz, Sicherheit und Benutzerfreiheit.
+about-librewolf = Parrot ist eine angepasste Version von LibreWolf mit den Hauptzielen Datenschutz, Sicherheit und Benutzerfreiheit.

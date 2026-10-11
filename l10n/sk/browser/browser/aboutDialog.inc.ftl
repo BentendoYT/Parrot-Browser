@@ -1,0 +1,1 @@
+about-librewolf = Parrot je upravená verzia LibreWolfu, ktorej hlavnými cieľmi sú súkromie, bezpečnosť a sloboda používateľa.

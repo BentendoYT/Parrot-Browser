@@ -1,1 +1,1 @@
-about-librewolf = LibreWolf on räätälöity versio Firefoxista. Sen ensisijaiset tavoitteet ovat yksityisyys, tietoturva ja käyttäjävapaudet.
+about-librewolf = Parrot on LibreWolfin mukautettu versio. Sen ensisijaiset tavoitteet ovat yksityisyys, tietoturva ja käyttäjävapaus.

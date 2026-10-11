@@ -1,0 +1,1 @@
+about-librewolf = Parrot は、プライバシー、セキュリティ、ユーザーの自由を主な目標とする LibreWolf のカスタム版です。

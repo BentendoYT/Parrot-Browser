@@ -1,1 +1,1 @@
-about-librewolf = Is leagan saincheaptha de Firefox é LibreWolf, a bhfuil na príomhspriocanna aige maidir le príobháideacht, slándáil agus saoirse úsáideora.
+about-librewolf = Is leagan saincheaptha de LibreWolf é Parrot, a bhfuil príomhspriocanna aige maidir le príobháideachas, slándáil agus saoirse úsáideora.

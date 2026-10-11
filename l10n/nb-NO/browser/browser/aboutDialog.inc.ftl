@@ -1,0 +1,1 @@
+about-librewolf = Parrot er en tilpasset versjon av LibreWolf, med personvern, sikkerhet og brukernes frihet som hovedmål.

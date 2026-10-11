@@ -1,1 +1,1 @@
-about-librewolf = Ang LibreWolf ay isang custom na bersyon ng Firefox na may pangunahing layunin ng pagkapribado, seguridad, at kalayaan ng user.
+about-librewolf = Ang Parrot ay isang custom na bersyon ng LibreWolf na may pangunahing layunin ng pagkapribado, seguridad, at kalayaan ng user.

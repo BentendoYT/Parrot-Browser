@@ -1,1 +1,1 @@
-about-librewolf = LibreWolf, ana hedefi gizlilik, güvenlik ve kullanıcı özgürlüğü olan; Firefox'un özelleştirilmiş bir versiyonudur.
+about-librewolf = Parrot, ana hedefi gizlilik, güvenlik ve kullanıcı özgürlüğü olan LibreWolf'un özelleştirilmiş bir versiyonudur.

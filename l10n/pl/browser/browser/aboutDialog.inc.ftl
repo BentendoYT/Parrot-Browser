@@ -1,1 +1,1 @@
-about-librewolf = LibreWolf to zmodyfikowana wersja Firefoksa, której głównymi celami są prywatność, bezpieczeństwo i wolność użytkownika.
+about-librewolf = Parrot to zmodyfikowana wersja LibreWolf, której głównymi celami są prywatność, bezpieczeństwo i wolność użytkownika.
