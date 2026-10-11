@@ -1,3 +1,8 @@
+> [!NOTE]
+> **Forked from [Librewolf](https://librewolf.dev/librewolf/source)**
+
+---
+
  <div align="center">
 
 <img src="./patches/pref-pane/category-librewolf.svg" alt="Parrot Logo" width="256">
