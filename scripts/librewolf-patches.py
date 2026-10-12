@@ -123,9 +123,6 @@ def librewolf_patches():
     exec('cp -v ../assets/search-config-v2.json services/settings/dumps/main/search-config-v2.json')
     exec('cp -v ../assets/search-config-icons.json services/settings/dumps/main/search-config-icons.json')
 
-    # add mojeek
-    exec('cp -v ../assets/2c4b8834-030c-4097-a887-c7506689095c services/settings/dumps/main/search-config-icons')
-    exec('cp -v ../assets/2c4b8834-030c-4097-a887-c7506689095c.meta.json services/settings/dumps/main/search-config-icons')
 
     # copy our public signing keys
     exec('cp -v ../assets/marsigner.der toolkit/mozapps/update/updater/release_primary.der')
@@ -139,6 +136,7 @@ def librewolf_patches():
     # apply xmas.patch seperately because not all builders use this repo the same way, and
     # we don't want to disturbe those workflows.
     patch('../patches/xmas.patch')
+    exec("python3 ../scripts/parrot-nova-colors.py --patch-importer")
 
     #
     # Apply most recent `settings` repository files.
@@ -146,7 +144,7 @@ def librewolf_patches():
 
     exec('mkdir -p lw')
     enter_srcdir('lw')
-    exec('cp -v ../../settings/librewolf.cfg .')
+    exec('cp -v ../../settings/parrot.cfg .')
     exec('cp -v ../../settings/distribution/policies.json .')
     exec('cp -v ../../settings/defaults/pref/local-settings.js .')
     leave_srcdir();
