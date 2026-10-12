@@ -9,7 +9,7 @@ index 725a639..2b88218 100644
 +; LibreWolf specific files.
 +@RESPATH@/defaults/pref/local-settings.js
 +@RESPATH@/distribution/policies.json
-+@RESPATH@/librewolf.cfg
++@RESPATH@/parrot.cfg
 +
  # channel-prefs.js has been removed on macOS.
  #ifndef XP_MACOSX
@@ -20,7 +20,7 @@ index e69de29..8589aac 100644
 +++ b/lw/moz.build
 @@ -0,0 +1,12 @@
 +FINAL_TARGET_FILES += [
-+  "librewolf.cfg",
++  "parrot.cfg",
 +]
 +
 +FINAL_TARGET_FILES.distribution += [
