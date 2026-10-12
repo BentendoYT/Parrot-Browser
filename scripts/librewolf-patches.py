@@ -122,6 +122,7 @@ def librewolf_patches():
     # copy the right search-config.json-v2 file and search-config-icons file
     exec('cp -v ../assets/search-config-v2.json services/settings/dumps/main/search-config-v2.json')
     exec('cp -v ../assets/search-config-icons.json services/settings/dumps/main/search-config-icons.json')
+    exec('cp -v ../assets/2c4b8834-030c-4097-a887-c7506689095c* services/settings/dumps/main/search-config-icons/')
 
 
     # copy our public signing keys
