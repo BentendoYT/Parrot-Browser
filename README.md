@@ -4,10 +4,8 @@
 ---
 
  <div align="center">
-
-<img src="./patches/pref-pane/category-librewolf.svg" alt="Parrot Logo" width="256">
-
-# Parrot
+  
+# <img src="./patches/pref-pane/ParrotLogo.svg" alt="Parrot" width="1024">
 
 This repository contains all the patches and theming that make up Parrot,
 as well as the Parrot preferences (in [settings/](./settings)) and the
