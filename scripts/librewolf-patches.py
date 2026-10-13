@@ -186,7 +186,7 @@ def librewolf_patches():
 
     print("-> Patching appstrings.properties")
     # Why is "Firefox" hardcoded there???
-    exec("find . -path '*/appstrings.properties' -exec sed -i 's/Firefox/Parrot Browser/g' {} \\;")
+    exec("find . -path '*/appstrings.properties' -exec sed -i 's/Firefox/Parrot/g' {} \\;")
 
     print("-> Applying LibreWolf locales")
     l10n_dir = Path("..", "l10n")

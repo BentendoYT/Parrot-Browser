@@ -912,7 +912,7 @@ index bd2f95db2d..23ed1d8e90 100644
     * @see BACKUP_DIR_NAME
     */
 -  static #backupFolderName = "Restore Firefox";
-+  static #backupFolderName = "Restore LibreWolf";
++  static #backupFolderName = "Restore Parrot";
  
    /**
     * The name of the backup archive file. Should be localized.

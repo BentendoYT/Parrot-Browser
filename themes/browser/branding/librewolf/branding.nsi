@@ -8,9 +8,9 @@
 
 # BrandFullNameInternal is used for some registry and file system values
 # instead of BrandFullName and typically should not be modified.
-!define BrandFullNameInternal "Parrot Browser"
-!define BrandFullName         "Parrot Browser"
-!define CompanyName           "Parrot Browser"
+!define BrandFullNameInternal "Parrot"
+!define BrandFullName         "Parrot"
+!define CompanyName           "Parrot"
 !define URLInfoAbout          "https://bentendo.pages.dev/parrot/"
 !define HelpLink              "https://bentendo.pages.dev/parrot/"
 

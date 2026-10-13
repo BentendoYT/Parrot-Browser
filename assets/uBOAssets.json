@@ -2,7 +2,7 @@
   "assets.json": {
     "content": "internal",
     "updateAfter": 13,
-    "contentURL": "https://librewolf.dev/librewolf/source/raw/branch/main/assets/uBOAssets.json"
+    "contentURL": "https://raw.githubusercontent.com/BentendoYT/Parrot-Browser/main/assets/uBOAssets.json"
   },
   "public_suffix_list.dat": {
     "content": "internal",
@@ -137,7 +137,6 @@
   "ublock-experimental": {
     "content": "filters",
     "group": "default",
-    "off": true,
     "title": "uBlock filters – Experimental",
     "contentURL": "https://ublockorigin.github.io/uAssets/filters/experimental.txt",
     "cdnURLs": [
@@ -154,7 +153,6 @@
   "adguard-generic": {
     "content": "filters",
     "group": "ads",
-    "off": true,
     "title": "AdGuard – Ads",
     "tags": "ads",
     "contentURL": "https://filters.adtidy.org/extension/ublock/filters/2_without_easylist.txt",
@@ -163,7 +161,6 @@
   "adguard-mobile": {
     "content": "filters",
     "group": "ads",
-    "off": true,
     "title": "AdGuard – Mobile Ads",
     "tags": "ads mobile",
     "ua": "mobile",
@@ -206,7 +203,6 @@
   "block-lan": {
     "content": "filters",
     "group": "privacy",
-    "off": true,
     "title": "Block Outsider Intrusion into LAN",
     "tags": "privacy security",
     "contentURL": "https://ublockorigin.github.io/uAssets/filters/lan-block.txt",
@@ -269,7 +265,6 @@
     "group": "annoyances",
     "group2": "cookies",
     "parent": "AdGuard/uBO – Cookie Notices",
-    "off": true,
     "title": "AdGuard – Cookie Notices",
     "tags": "annoyances cookies",
     "contentURL": "https://filters.adtidy.org/extension/ublock/filters/18.txt",
@@ -280,7 +275,6 @@
     "group": "annoyances",
     "group2": "cookies",
     "parent": "AdGuard/uBO – Cookie Notices",
-    "off": true,
     "title": "uBlock filters – Cookie Notices",
     "tags": "annoyances cookies",
     "contentURL": "https://ublockorigin.github.io/uAssets/filters/annoyances-cookies.txt",
@@ -296,7 +290,6 @@
     "group": "annoyances",
     "group2": "cookies",
     "parent": "EasyList/uBO – Cookie Notices",
-    "off": true,
     "title": "EasyList – Cookie Notices",
     "tags": "annoyances cookies",
     "preferred": true,
@@ -317,7 +310,6 @@
     "group": "annoyances",
     "group2": "cookies",
     "parent": "EasyList/uBO – Cookie Notices",
-    "off": true,
     "title": "uBlock filters – Cookie Notices",
     "tags": "annoyances cookies",
     "preferred": true,
@@ -517,7 +509,6 @@
     "content": "filters",
     "group": "multipurpose",
     "updateAfter": 13,
-    "off": true,
     "title": "Dan Pollock’s hosts file",
     "tags": "ads privacy security",
     "contentURL": "https://someonewhocares.org/hosts/hosts",

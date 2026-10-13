@@ -1,1 +1,1 @@
-identity-allow-site-data = LibreWolf: 常にこのサイトのクッキーとデータを保存する
+identity-allow-site-data = Parrot: 常にこのサイトのクッキーとデータを保存する

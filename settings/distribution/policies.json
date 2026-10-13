@@ -53,20 +53,19 @@
         "private_browsing": true
       },
       "addon@darkreader.org": {
-        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/addon@darkreader.org/latest.xpi",
-        "installation_mode": "normal_installed",
+        "installation_mode": "allowed",
         "private_browsing": true
       },
-      "sponsorBlocker@ajay.app": {
-        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/sponsorBlocker@ajay.app/latest.xpi",
-        "installation_mode": "normal_installed",
-        "private_browsing": true
-      },
-      "{74145f27-f039-47ce-a470-a662b129930a}": {
-        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/clearurls/latest.xpi",
-        "installation_mode": "normal_installed",
-        "private_browsing": true
+      "{f48a10e0-1d9f-4c76-a79b-b2d7bfbe919e}": {
+        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/{f48a10e0-1d9f-4c76-a79b-b2d7bfbe919e}/latest.xpi",
+        "installation_mode": "normal_installed"
       }
+    },
+
+    "Extensions": {
+      "Install": [
+        "https://addons.mozilla.org/firefox/downloads/latest/addon@darkreader.org/latest.xpi"
+      ]
     },
 
     "FirefoxHome": {
@@ -92,7 +91,7 @@
     "OverridePostUpdatePage": "",
     "SkipTermsOfUse": true,
     "SupportMenu": {
-      "Title": "Parrot Browser Issue Tracker",
+      "Title": "Parrot Issue Tracker",
       "URL": "https://github.com/BentendoYT/Parrot-Browser/issues"
     },
     "UserMessaging": {

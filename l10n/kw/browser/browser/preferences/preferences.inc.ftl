@@ -1,7 +1,7 @@
-pane-librewolf-title = LibreWolf
+pane-librewolf-title = Parrot
 category-librewolf =
     .tooltiptext = chanjyow about:config, gorrys yn bagas ha hedhadow yn es
-librewolf-header = Dewisyow LibreWolf
+librewolf-header = Dewisyow Parrot
 librewolf-warning-title = Gwarnyans!
 librewolf-warning-description = Ni dewisyn settyansow defowt rag fogella war briveter ha sawder. Mars ow chanjya an settyansow ma, redya an dheskrifansow rag konvedhes an effeythyow a'n janjyow na.
 librewolf-general-heading2 =

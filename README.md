@@ -7,11 +7,11 @@
 
 <img src="./patches/pref-pane/category-librewolf.svg" alt="Parrot Logo" width="256">
 
-# Parrot Browser
+# Parrot
 
-This repository contains all the patches and theming that make up Parrot Browser,
-as well as the Parrot Browser preferences (in [settings/](./settings)) and the
-scripts and Makefile to build Parrot Browser.
+This repository contains all the patches and theming that make up Parrot,
+as well as the Parrot preferences (in [settings/](./settings)) and the
+scripts and Makefile to build Parrot.
 
 </div>
 
@@ -25,7 +25,7 @@ graph LR
 
     FFSRC--Tarball--->Source
 
-    subgraph Parrot Browser/
+    subgraph Parrot/
     Website(Website<br><br>- Documentation<br>- FAQ)
     subgraph Browser/
         Source(Source<br><br>- Patches<br>- Theming<br>- Settings<br>- Weblate<br>- Build scripts)
@@ -74,7 +74,7 @@ Previous:
 
 ## Build
 
-There are two ways to build Parrot Browser.
+There are two ways to build Parrot.
 You can either use the source tarball
 or compile directly with this repository.
 
@@ -89,7 +89,7 @@ or compile directly with this repository.
    cd <folder>
    ```
 
-2. Then, you have to bootstrap your system to be able to build Parrot Browser.
+2. Then, you have to bootstrap your system to be able to build Parrot.
    You only have to do this one time.
    It is done by running the following command:
 
@@ -97,7 +97,7 @@ or compile directly with this repository.
    ./mach --no-interactive bootstrap --application-choice=browser
    ```
 
-3. Build Parrot Browser and then package or run it with the following commands:
+3. Build Parrot and then package or run it with the following commands:
 
    ```bash
    ./mach build && ./mach package
@@ -121,15 +121,15 @@ or compile directly with this repository.
    git clone --recursive git@librewolf.dev:librewolf/source.git librewolf-source --depth=1 && cd librewolf-source
    ```
 
-2. Build Parrot Browser source code,
-   also you have to bootstrap your system to be able to build Parrot Browser.
+2. Build Parrot source code,
+   also you have to bootstrap your system to be able to build Parrot.
    You only have to do this one time.
 
    ```bash
    make dir && make bootstrap
    ```
 
-3. Package Parrot Browser or run it with the following commands:
+3. Package Parrot or run it with the following commands:
 
    ```bash
    make build && make package
@@ -139,8 +139,8 @@ or compile directly with this repository.
 
 ## Translations
 
-We use Weblate to localize all Parrot Browser-specific strings.
-You can help us by translating Parrot Browser into your language at
+We use Weblate to localize all Parrot-specific strings.
+You can help us by translating Parrot into your language at
 <https://translate.codeberg.org/engage/librewolf>.
 Here is the current translation status:
 
@@ -152,7 +152,7 @@ Here is the current translation status:
 
 ### Development: Creating a patch
 
-The easiest way to make patches is to go to the Parrot Browser source folder:
+The easiest way to make patches is to go to the Parrot source folder:
 
 ```bash
 cd librewolf-$(cat version)
@@ -167,7 +167,7 @@ and on the website we have links to the various issue trackers.
 
 ### Development: Existing patches
 
-The easiest way to make patches is to go to the Parrot Browser source folder:
+The easiest way to make patches is to go to the Parrot source folder:
 
 ```bash
 make fetch
@@ -195,7 +195,7 @@ Well, first of all:
 - Handy link: [Bugs Filed Today](https://bugzilla.mozilla.org/buglist.cgi?cmdtype=dorem&remaction=run&namedcmd=Bugs%20Filed%20Today&sharer_id=1&list_id=15939480).
 - The essential: [Firefox Source Tree Documentation](https://firefox-source-docs.mozilla.org/).
 
-Now that you have a patch in Parrot Browser, that's not enough to upload to Mozilla.
+Now that you have a patch in Parrot, that's not enough to upload to Mozilla.
 See, Mozilla only accepts patches against Nightly.
 So here is how to do that:
 

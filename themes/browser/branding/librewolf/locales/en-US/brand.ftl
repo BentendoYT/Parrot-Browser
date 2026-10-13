@@ -12,12 +12,12 @@
 ##
 ## Reference: https://www.mozilla.org/styleguide/communications/translation/
 
--brand-shorter-name = Parrot Browser
--brand-short-name = Parrot Browser
--brand-full-name = Parrot Browser
--brand-shortcut-name = Parrot Browser
+-brand-shorter-name = Parrot
+-brand-short-name = Parrot
+-brand-full-name = Parrot
+-brand-shortcut-name = Parrot
 # This brand name can be used in messages where the product name needs to
 # remain unchanged across different versions (Nightly, Beta, etc.).
--brand-product-name = Parrot Browser
--vendor-short-name = Parrot Browser
+-brand-product-name = Parrot
+-vendor-short-name = Parrot
 trademarkInfo = { " " }

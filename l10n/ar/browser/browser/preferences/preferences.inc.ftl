@@ -1,6 +1,6 @@
-pane-librewolf-title = LibreWolf
+pane-librewolf-title = Parrot
 librewolf-warning-description = قمنا باختيار الإعدادات الافتراضية بعناية للتركيز على الخصوصية والأمان. عندما تقوم بتغيير هذه الإعدادات، يرجى قراءة وصف كل إعداد بدقة لتفهم تَبِعات تغييراتك.
-librewolf-header = تفضيلات LibreWolf
+librewolf-header = تفضيلات Parrot
 librewolf-warning-title = انتبه!
 librewolf-general-heading = سلوك المتصفح
 librewolf-extension-update-checkbox =
@@ -54,7 +54,7 @@ librewolf-goog-safe-download-warning1 = جميع الفحوصات تُجرى م�
 librewolf-footer = روابط مفيدة
 librewolf-config-link = جميع الإعدادات المتقدمة (about:config)
 librewolf-open-profile = افتح مجلد الملف التعريفي للمستخدم
-content-blocking-section-top-level-description = يدعم LibreWolf -و يُفعِّل بشكل افتراضي- ميزة الحماية المعززة من التتبع في الوضع الصارم. والذي يعتبر واحدًا من أهم الإعدادات في المتصفح، كونه يوفر تقسيم الحالة (state partitioning)، وقوائم حظر صارمة، وميِّزات أخرى لتعزيز الخصوصية. لا ننصح بتغيير هذا الوضع إلى أي من الأوضاع الأخرى.
+content-blocking-section-top-level-description = يدعم Parrot -و يُفعِّل بشكل افتراضي- ميزة الحماية المعززة من التتبع في الوضع الصارم. والذي يعتبر واحدًا من أهم الإعدادات في المتصفح، كونه يوفر تقسيم الحالة (state partitioning)، وقوائم حظر صارمة، وميِّزات أخرى لتعزيز الخصوصية. لا ننصح بتغيير هذا الوضع إلى أي من الأوضاع الأخرى.
 librewolf-webgl-warning1 = إن كنت تحتاج لتفعليها، يوصى باستخدام إضافة متصفح مثل Canvas Blocker للحد من تتبع بصمة المتصفح.
 librewolf-letterboxing-description = تقوم تقنية الـLetterboxing بإضافة هوامش حول نافذة المتصفح لتغيير أبعادها وجعلها تبدو ضمن مجموعة محدودة من القياسات الموحَّدة، مما يُصَعِّب على المواقع التعرف عليك بناءً على حجم شاشتك.
 librewolf-goog-safe-download-description = السماح لخدمة التصفح الآمن من Google بفحص تنزيلاتك لكشف الملفات المشبوهة أو الضارة.

@@ -12,7 +12,7 @@ assets=$(curl https://raw.githubusercontent.com/gorhill/uBlock/master/assets/ass
 echo "-> Overwriting assets.json update location"
 assets=$(echo "$assets" | jq '
   del(.["assets.json"].cdnURLs) |
-  .["assets.json"].contentURL = "https://librewolf.dev/librewolf/source/src/branch/main/assets/uBOAssets.json"
+  .["assets.json"].contentURL = "https://raw.githubusercontent.com/BentendoYT/Parrot-Browser/main/assets/uBOAssets.json"
 ')
 
 # Enable some filter lists that are disabled by default
@@ -20,8 +20,20 @@ function enable_filter_list {
   echo "-> Enabling filter list \"$1\""
   assets=$(echo "$assets" | jq "del(.[\"$1\"].off)")
 }
-enable_filter_list "curben-phishing"
+
+enable_filter_list "ublock-experimental"
+enable_filter_list "adguard-generic"
+enable_filter_list "adguard-mobile"
 enable_filter_list "adguard-spyware-url"
+enable_filter_list "block-lan"
+enable_filter_list "urlhaus-1"
+enable_filter_list "curben-phishing"
+enable_filter_list "plowe-0"
+enable_filter_list "dpollock-0"
+enable_filter_list "fanboy-cookiemonster"
+enable_filter_list "ublock-cookies-easylist"
+enable_filter_list "adguard-cookies"
+enable_filter_list "ublock-cookies-adguard"
 
 # Add some custom filter lists
 function add_filter_list {
