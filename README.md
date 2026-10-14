@@ -5,7 +5,8 @@
 
  <div align="center">
   
-# <img src="./patches/pref-pane/ParrotLogo.svg" alt="Parrot" width="100%">
+# <img src="https://github.com/user-attachments/assets/30ba578a-afc0-4089-8060-21eef10ac3f0" alt="Parrot" width="90%" style="background: transparent;">
+
 
 This repository contains all the patches and theming that make up Parrot,
 as well as the Parrot preferences (in [settings/](./settings)) and the
