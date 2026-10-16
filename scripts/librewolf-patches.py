@@ -122,7 +122,7 @@ def librewolf_patches():
     # copy the right search-config.json-v2 file and search-config-icons file
     exec('cp -v ../assets/search-config-v2.json services/settings/dumps/main/search-config-v2.json')
     exec('cp -v ../assets/search-config-icons.json services/settings/dumps/main/search-config-icons.json')
-    exec('cp -v ../assets/2c4b8834-030c-4097-a887-c7506689095c* services/settings/dumps/main/search-config-icons/')
+    exec('cp -v ../assets/????????-????-????-????-????????????* services/settings/dumps/main/search-config-icons/')
 
 
     # copy our public signing keys
@@ -138,6 +138,12 @@ def librewolf_patches():
     # we don't want to disturbe those workflows.
     patch('../patches/xmas.patch')
     exec("python3 ../scripts/parrot-nova-colors.py --patch-importer")
+
+    # The settings "About Parrot" sidebar button loads chrome://browser/skin/sidebar/firefox.svg,
+    # which settings-redesign.patch maps to browser/themes/shared/sidebar/librewolf.svg (a new
+    # file created by that patch). Replace it with the white Parrot logo. Must run after the
+    # patches in patches.txt; fails the build if assets/ParrotWhite.svg is missing.
+    exec('cp -v ../assets/ParrotWhite.svg browser/themes/shared/sidebar/librewolf.svg')
 
     #
     # Apply most recent `settings` repository files.

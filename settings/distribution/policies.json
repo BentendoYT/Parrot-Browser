@@ -68,6 +68,19 @@
       ]
     },
 
+    "3rdparty": {
+      "Extensions": {
+        "uBlock0@raymondhill.net": {
+          "adminSettings": {
+            "userSettings": {
+              "uiAccentCustom": true,
+              "uiAccentCustom0": "#ffffff"
+            }
+          }
+        }
+      }
+    },
+
     "FirefoxHome": {
       "Weather": false,
       "TopSites": false,

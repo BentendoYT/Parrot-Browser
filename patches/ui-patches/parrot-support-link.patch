@@ -1,0 +1,12 @@
+diff --git a/browser/components/preferences/preferences.xhtml b/browser/components/preferences/preferences.xhtml
+--- a/browser/components/preferences/preferences.xhtml
++++ b/browser/components/preferences/preferences.xhtml
+@@ -217,7 +217,7 @@
+       </html:moz-page-nav-button>
+       <html:moz-page-nav-button id="helpButton"
+         slot="secondary-nav"
+-        support-page="preferences"
++        href="https://github.com/BentendoYT/Parrot-Browser/issues"
+         iconsrc="chrome://global/skin/icons/help.svg"
+         data-l10n-id="help-button-label2">
+       </html:moz-page-nav-button>
