@@ -145,6 +145,13 @@ def librewolf_patches():
     # patches in patches.txt; fails the build if assets/ParrotWhite.svg is missing.
     exec('cp -v ../assets/ParrotWhite.svg browser/themes/shared/sidebar/librewolf.svg')
 
+    # Final UI polish: non-Nova accent, New Tab tokens, private page colours, private links.
+    exec("python3 ../scripts/parrot-ui-polish.py")
+
+    # Parrot private-browsing icon (indicator button, info panel, private New Tab logo, tab icon).
+    exec('cp -v ../assets/ParrotPrivate.svg browser/themes/shared/privatebrowsing/pbm-logo.svg')
+    exec('cp -v ../assets/ParrotPrivate.svg browser/themes/shared/privatebrowsing/favicon.svg')
+
     #
     # Apply most recent `settings` repository files.
     #
