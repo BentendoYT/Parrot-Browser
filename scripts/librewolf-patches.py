@@ -148,6 +148,9 @@ def librewolf_patches():
     # Final UI polish: non-Nova accent, New Tab tokens, private page colours, private links.
     exec("python3 ../scripts/parrot-ui-polish.py")
 
+    # Settings/support-link/UI fixes (needs the table created by parrot-ui-polish.py).
+    exec("python3 ../scripts/parrot-settings-fixes.py")
+
     # Parrot private-browsing icon (indicator button, info panel, private New Tab logo, tab icon).
     exec('cp -v ../assets/ParrotPrivate.svg browser/themes/shared/privatebrowsing/pbm-logo.svg')
     exec('cp -v ../assets/ParrotPrivate.svg browser/themes/shared/privatebrowsing/favicon.svg')
