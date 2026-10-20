@@ -173,6 +173,8 @@ def librewolf_patches():
     patch('../patches/pref-pane/pref-pane-small.patch')
     # 2) new files
     exec('cp ../patches/pref-pane/category-librewolf.svg browser/themes/shared/preferences/category-librewolf.svg')
+    # Classic layout: same vector Parrot logo as the About button.
+    exec('cp -v ../assets/ParrotWhite.svg browser/themes/shared/preferences/category-librewolf.svg')
     exec('cp ../patches/pref-pane/librewolf.css browser/themes/shared/preferences/librewolf.css')
     exec('cp ../patches/pref-pane/librewolf.inc.xhtml browser/components/preferences/librewolf.inc.xhtml')
     exec('cp ../patches/pref-pane/librewolf.js browser/components/preferences/librewolf.js')
