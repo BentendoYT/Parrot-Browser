@@ -13,9 +13,12 @@ Slugs shared with controls that need a different destination get a dedicated slu
   2. Dedicated slugs: About > Get help (FAQ) and Tabs > Container Tabs (FPI FAQ).
   3. Sidebar Parrot Support button -> FAQ.
   4. Help menu: "How to migrate your data" -> exact SUMO URL (no utm params),
-     Get help -> LibreWolf FAQ, neutral switch-device bubble (Nova).
+     Get help (hamburger menu, menu bar, Help key) -> Parrot wiki FAQ, neutral
+     switch-device bubble (Nova).
   5. Disabled primary buttons: neutral instead of violet (Nova tokens + New Tab copy).
   6. Main address bar (#urlbar): pure #ffffff focus outline.
+  7. Settings > Account and sync > Backup: neutral (not yellow) warning triangle next to
+     "Backup is OFF" (scoped to .scheduled-backups-disabled in backup-settings.css).
 
 Every edit is exact-match and idempotent; a missing or ambiguous anchor aborts the run.
 """
@@ -61,7 +64,8 @@ LINKS = {
 }
 
 SWITCHING_URL = SUMO + "switching-devices"
-HELP_URL = "https://librewolf.net/docs/faq/"
+HELP_URL = WIKI  # exact Parrot FAQ; the Get help actions must not go through app.support.baseURL
+LEGACY_HELP_URL = "https://librewolf.net/docs/faq/"  # what earlier versions of this script wrote
 
 MARK = "Parrot settings fixes"
 
@@ -97,6 +101,16 @@ def patch_file(path, edits):
             die(f"{path}: expected exactly one match, found {n_old} for:\n  {old[:160]}")
         text = text.replace(old, new, 1)
     write_if_changed(path, orig, text)
+
+
+def migrate_legacy_help_url():
+    """Upgrade a tree an older run of this script already patched (idempotent re-runs)."""
+    old = f'openTrustedLinkIn("{LEGACY_HELP_URL}", "tab");'
+    new = f'openTrustedLinkIn("{HELP_URL}", "tab");'
+    for path, _ in HELP_EDITS:
+        path, text = read(path)
+        if old in text:
+            write_if_changed(path, text, text.replace(old, new))
 
 
 def append_block(path, marker, block):
@@ -202,7 +216,25 @@ URLBAR_CSS = f"""{URLBAR_MARK} for the main address bar (Nova and classic).
 """
 
 
+# --- 7. Backup status warning triangle ------------------------------------------------------
+# backup-settings.mjs renders <moz-box-item id="scheduled-backups" class="scheduled-backups-disabled"
+# iconsrc="chrome://global/skin/icons/warning.svg">. The triangle is an <img> inside moz-box-item's
+# shadow DOM that paints with fill: var(--box-icon-start-fill) (moz-box-common.css), and
+# backup-settings.css sets that to --icon-color-warning (yellow). Only that class is changed, so
+# other warning icons (message bars, About updates, sync status, downloads...) keep their tokens.
+# --icon-color is the design system's neutral icon colour (gray-70 light / near-white dark) and
+# also follows prefers-contrast / forced-colors.
+BACKUP_CSS = (
+    "browser/components/backup/content/backup-settings.css",
+    [(
+        ".scheduled-backups-disabled {\n  --box-icon-start-fill: var(--icon-color-warning);\n}",
+        ".scheduled-backups-disabled {\n  /* Parrot: neutral warning triangle instead of yellow */\n  --box-icon-start-fill: var(--icon-color);\n}",
+    )],
+)
+
+
 def main():
+    migrate_legacy_help_url()
     extend_support_table()
     for path, edits in (ABOUT_HELP, CONTAINERS, SIDEBAR, *HELP_EDITS):
         patch_file(path, edits)
@@ -210,6 +242,7 @@ def main():
     for path in DISABLED_FILES:
         patch_file(path, [(DISABLED_OLD, DISABLED_NEW)])
     append_block("browser/themes/shared/urlbar.css", URLBAR_MARK, URLBAR_CSS)
+    patch_file(*BACKUP_CSS)
     print(f"{MARK}: done")
 
 

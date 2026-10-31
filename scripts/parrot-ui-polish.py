@@ -30,6 +30,8 @@ NEUTRAL_ACTIVE = "light-dark(rgba(0, 0, 0, 0.14), rgba(255, 255, 255, 0.16))"
 
 
 ICON_NEUTRAL = "light-dark(#171519, #efedf2)"
+# Neutral background behind the information symbol; keep the glyph unchanged.
+ICON_BADGE = "light-dark(#c4c3c9, #9d9ca2)"
 ISSUES_URL = "https://github.com/BentendoYT/Parrot-Browser/issues"
 WIKI_BUILTIN_URL = "https://github.com/BentendoYT/Parrot-Browser/wiki/Built%E2%80%90in-Extensions-&-Themes"
 # slug (support-page attribute) -> exact URL. Add "addons-help" here once decided.
@@ -127,8 +129,18 @@ PB_CSS_EDITS = [
 
 # --- 5/6/7/8. info icons, focus outline, support links -----------------------------------
 MSGBAR_TOKENS = Path("toolkit/content/widgets/moz-message-bar/moz-message-bar.tokens.css")
-MSGBAR_EDITS = [("--message-bar-icon-color: var(--icon-color-information);",
-                 f"--message-bar-icon-color: {ICON_NEUTRAL};")]
+MSGBAR_EDITS = [
+    ("--message-bar-icon-color: var(--icon-color-information);",
+     f"--message-bar-icon-color: {ICON_NEUTRAL};"),
+    # Info badge (round background behind the icon): the anchor starts with a line break plus 4 spaces, so it never matches the 6-space prefers-contrast line,
+    # and it has no line break in the middle, so it also works with CRLF checkouts. Warning/success/error badges have their own tokens and stay untouched.
+    ("\n    --message-bar-icon-background-color: var(--background-color-information);",
+     f"\n    --message-bar-icon-background-color: {ICON_BADGE};"),
+    # prefers-contrast: keep the original system-colour badge. Single-line anchor; the marker (third element) keeps repeated runs idempotent.
+    ("--message-bar-border-color: var(--border-color);",
+     "--message-bar-border-color: var(--border-color); --message-bar-icon-background-color: var(--background-color-information);",
+     "--message-bar-border-color: var(--border-color); --message-bar-icon-background-color: var(--background-color-information);"),
+]
 UPDATE_STATE = Path("browser/components/preferences/widgets/update-state/update-state.css")
 UPDATE_STATE_EDITS = [("--box-icon-start-fill: var(--icon-color-information);",
                        f"--box-icon-start-fill: {ICON_NEUTRAL};")]
