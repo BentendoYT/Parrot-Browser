@@ -119,6 +119,34 @@ jobs:
             mv -v "$f" "parrot-${f#librewolf-}"
           done
 
+      - name: Verify package contains parrot.exe
+        shell: bash
+        run: |
+          shopt -s nullglob
+          zips=(parrot-*.zip)
+          if [ "${#zips[@]}" -eq 0 ]; then
+            echo "::error::No parrot-*.zip was produced"
+            exit 1
+          fi
+          python3 - "${zips[@]}" <<'PY'
+          import posixpath
+          import sys
+          import zipfile
+
+          failed = False
+          for path in sys.argv[1:]:
+              names = zipfile.ZipFile(path).namelist()
+              base = lambda n: posixpath.basename(n).lower()
+              parrot = [n for n in names if base(n) == "parrot.exe"]
+              librewolf = [n for n in names if base(n) == "librewolf.exe"]
+              ok = len(parrot) == 1 and parrot[0].count("/") <= 1 and not librewolf
+              print(f"{path}: {'OK' if ok else 'FAILED'} parrot.exe={parrot} librewolf.exe={librewolf}")
+              failed |= not ok
+          if failed:
+              print("::error::The package must contain exactly one parrot.exe (top-level folder) and no librewolf.exe")
+              sys.exit(1)
+          PY
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:

@@ -5,7 +5,7 @@
 # there is a possible patch to consider when changing this:
 # see: patches/browser-confvars.patch
 
-MOZ_APP_NAME=librewolf
+MOZ_APP_NAME=parrot
 MOZ_APP_BASENAME="Parrot"
 MOZ_APP_DISPLAYNAME="Parrot"
 MOZ_APP_REMOTINGNAME=librewolf

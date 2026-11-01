@@ -17,7 +17,7 @@ ac_add_options --enable-proxy-bypass-protection
 ac_add_options --enable-replace-malloc
 ac_add_options --enable-jemalloc
 
-ac_add_options --with-app-name=librewolf
+ac_add_options --with-app-name=parrot
 ac_add_options --with-branding=browser/branding/librewolf
 
 ac_add_options --with-l10n-base=$PWD/lw/l10n
@@ -27,6 +27,11 @@ export MOZ_REQUIRE_SIGNING=
 export MOZILLA_OFFICIAL=1
 export MOZ_APP_REMOTINGNAME=LibreWolf
 export MOZ_PKG_VERSION=
+# --with-app-name sets MOZ_APP_NAME, which names the executable (parrot.exe), its
+# <name>.exe.manifest and the package folder. MOZ_PKG_APPNAME only names the package file
+# (librewolf-<version>.en-US.win64.zip). bsys6 (package.sh) and the Makefile "package" target
+# look for librewolf-*.zip / *.tar.xz, so keep the file-name prefix unchanged.
+export MOZ_PKG_APPNAME=librewolf
 
 mk_add_options MOZ_CRASHREPORTER=0
 mk_add_options MOZ_DATA_REPORTING=0
