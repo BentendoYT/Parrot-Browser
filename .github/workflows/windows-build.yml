@@ -13,6 +13,11 @@ on:
         required: false
         default: false
         type: boolean
+      publish_release:
+        description: "After a successful build, publish a GitHub release (tag = ProductVersion of parrot.exe) with the installer, the package zip and sha256sums.txt. This is what Parrot-WinUpdater downloads."
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -158,3 +163,122 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
+
+  build-installer:
+    name: Build installer
+    needs: build-windows
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Checkout Parrot-WinUpdater
+        uses: actions/checkout@v6
+        with:
+          repository: BentendoYT/Parrot-winupdater
+          path: winupdater
+
+      - name: Download packaged build
+        uses: actions/download-artifact@v4
+        with:
+          name: parrot-windows
+          path: dist
+
+      - name: Install NSIS
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nsis unzip
+
+      - name: Build installer
+        shell: bash
+        env:
+          UPDATER_DIR: ${{ github.workspace }}/winupdater
+        run: |
+          shopt -s nullglob
+          echo "WinUpdater commit: $(git -C winupdater rev-parse HEAD)"
+          sha256sum winupdater/Parrot-WinUpdater.exe
+          zips=(dist/parrot-*-windows-x86_64-package.zip)
+          if [ "${#zips[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one parrot-*-windows-x86_64-package.zip, found ${#zips[@]}"
+            ls -l dist
+            exit 1
+          fi
+          bash scripts/build-installer.sh "${zips[0]}" installer-out
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: parrot-installer
+          path: |
+            installer-out/parrot-*-setup.exe
+            installer-out/sha256sums.txt
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+  release:
+    name: Publish GitHub release
+    if: ${{ inputs.publish_release }}
+    needs: build-installer
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Download package
+        uses: actions/download-artifact@v4
+        with:
+          name: parrot-windows
+          path: dist
+
+      - name: Download installer
+        uses: actions/download-artifact@v4
+        with:
+          name: parrot-installer
+          path: dist
+
+      - name: Create release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          zips=(dist/parrot-*-windows-x86_64-package.zip)
+          setups=(dist/parrot-*-windows-x86_64-setup.exe)
+          if [ "${#zips[@]}" -ne 1 ] || [ "${#setups[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one package zip and one setup.exe in dist/"
+            ls -l dist
+            exit 1
+          fi
+
+          python3 -m venv .venv
+          .venv/bin/pip install --quiet pefile
+          tag="$(.venv/bin/python scripts/exe-version.py "${zips[0]}")"
+          if [ -z "$tag" ]; then
+            echo "::error::Could not read ProductVersion from parrot.exe"
+            exit 1
+          fi
+          echo "Release tag (= ProductVersion of parrot.exe): $tag"
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "::error::Release $tag already exists. Parrot-WinUpdater only sees a new version when ProductVersion of parrot.exe changes."
+            exit 1
+          fi
+
+          # "<sha256>  <file>" lines, the format Parrot-WinUpdater reads from sha256sums.txt
+          (cd dist && sha256sum "$(basename "${setups[0]}")" "$(basename "${zips[0]}")" > sha256sums.txt)
+          cat dist/sha256sums.txt
+
+          gh release create "$tag" \
+            --target "$GITHUB_SHA" \
+            --title "Parrot Browser $tag" \
+            --notes "Parrot Browser $tag for Windows x64. Unsigned build: Windows SmartScreen may warn. Verify downloads with sha256sums.txt." \
+            --latest \
+            "${setups[0]}" "${zips[0]}" dist/sha256sums.txt
