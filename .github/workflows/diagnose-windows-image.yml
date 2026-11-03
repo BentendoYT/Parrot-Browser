@@ -1,0 +1,50 @@
+name: Diagnose Windows build image
+
+# Inspects the bsys6 build image without building anything (takes a few minutes).
+# Run it from the Actions tab and read the output of the "Inspect image" step.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    name: Inspect bsys6 Windows image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    container:
+      image: librewolf.dev/librewolf/bsys6:windows
+    env:
+      HOME: /root
+      MOZBUILD_STATE_PATH: /root/.mozbuild
+
+    steps:
+      - name: Inspect image
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          VS=/root/.mozbuild/win-cross/vs
+          KITS="$VS/Windows Kits/10"
+          echo "== bsys6 HEAD =="; git ls-remote https://librewolf.dev/librewolf/bsys6.git HEAD
+          echo "== /root/.mozbuild =="; ls -la /root/.mozbuild
+          echo "== $VS =="; ls -la "$VS"
+          echo "== Windows Kits/10 =="; ls -la "$KITS"
+          echo "== Include versions =="; ls "$KITS/Include"
+          echo "== Lib versions =="; ls "$KITS/Lib"
+          echo "== um dirs (Include/Lib) =="; ls -d "$KITS"/Include/*/um "$KITS"/Lib/*/um
+          echo "== WINVER_MAXVER =="; grep -n "WINVER_MAXVER" "$KITS"/Include/*/um/winsdkver.h
+          echo "== VC/Tools/MSVC =="; ls "$VS/VC/Tools/MSVC"
+          echo "== clang =="; ls /root/.mozbuild | grep -i clang; /root/.mozbuild/clang/bin/clang --version | head -1
+          echo "== rustc =="; /root/.cargo/bin/rustc --version
+          echo "== bsys6 recent commits =="
+          git clone -q --depth 40 https://librewolf.dev/librewolf/bsys6.git /tmp/bsys6 && git -C /tmp/bsys6 log -40 --format='%h %ad %s' --date=short
+          echo "== Dockerfile.windows (toolchain lines) =="; grep -n "vs20\|clang-\|get_vs\|--default-toolchain" /tmp/bsys6/assets/Dockerfile.windows
+          echo "== windows.mozconfig =="; cat /tmp/bsys6/assets/windows.mozconfig
+          echo "== MOZBUILD in bsys6 vars =="; grep -rn "MOZBUILD" /tmp/bsys6/src/exports/vars.sh
+          echo "== Firefox 157.0.1 build/vs =="
+          curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/mozilla-firefox/firefox/contents/build/vs?ref=FIREFOX_157_0_1_RELEASE" | jq -r '.[].name'
+          exit 0
