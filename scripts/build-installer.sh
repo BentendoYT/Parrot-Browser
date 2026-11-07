@@ -59,6 +59,16 @@ args+=("-DOUT_FILE=$OUT_FILE")
 [ -n "$VERSION_NUM" ] && args+=("-DVERSION_NUM=$VERSION_NUM")
 [ -f "$ICON" ] && args+=("-DICON_FILE=$ICON")
 
+# Installer artwork (see scripts/make-installer-art.py); INSTALLER_DARK=0 gives the light scheme
+ART="$REPO_DIR/assets/installer"
+[ -f "$ART/banner.bmp" ] && args+=("-DBANNER_FILE=$ART/banner.bmp")
+if [ "${INSTALLER_DARK:-1}" = "1" ]; then
+  args+=("-DDARK=1")
+  [ -f "$ART/header-dark.bmp" ] && args+=("-DHEADER_FILE=$ART/header-dark.bmp")
+else
+  [ -f "$ART/header-light.bmp" ] && args+=("-DHEADER_FILE=$ART/header-light.bmp")
+fi
+
 if [ "${NO_VC_REDIST:-0}" != "1" ]; then
   VC="$WORK/vc_redist.x64.exe"
   if [ -n "${VC_REDIST_FILE:-}" ]; then

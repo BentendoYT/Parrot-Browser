@@ -8,7 +8,8 @@
 ;                        (64-bit registry view; default value contains the path to parrot.exe)
 ; Required defines (makensis -D...): PKG_VERSION, PKG_DIR, OUT_FILE
 ; Optional defines: ICON_FILE, VC_REDIST, UPDATER_DIR (adds the optional WinUpdater component),
-;                   VERSION_NUM (a.b.c.d for the file properties), EST_SIZE_KB
+;                   VERSION_NUM (a.b.c.d for the file properties), EST_SIZE_KB,
+;                   BANNER_FILE (164x314 BMP), HEADER_FILE (150x57 BMP), DARK (dark colour scheme)
 
 Unicode true
 ManifestSupportedOS Win10
@@ -63,6 +64,85 @@ SetCompressor /SOLID lzma
 !endif
 !define MUI_ABORTWARNING
 
+!ifdef BANNER_FILE
+  !define MUI_WELCOMEFINISHPAGE_BITMAP "${BANNER_FILE}"
+  !define MUI_UNWELCOMEFINISHPAGE_BITMAP "${BANNER_FILE}"
+!endif
+!ifdef HEADER_FILE
+  !define MUI_HEADERIMAGE
+  !define MUI_HEADERIMAGE_BITMAP "${HEADER_FILE}"
+  !define MUI_HEADERIMAGE_UNBITMAP "${HEADER_FILE}"
+  !define MUI_HEADERIMAGE_RIGHT
+!endif
+
+BrandingText "${APPNAME} ${PKG_VERSION}"
+
+!ifdef DARK
+  ; Header colours come from MUI; the page bodies are coloured in DarkShow below.
+  !define MUI_BGCOLOR "191919"
+  !define MUI_TEXTCOLOR "FFFFFF"
+!endif
+
+; ---------------------------------------------------------------------------------------------
+; Dark colour scheme. NSIS has no native dark mode, so every page recolours its own controls
+; when it is shown. Push buttons (Next/Cancel/Browse) keep the system look.
+!ifdef DARK
+!macro DEFINE_DARK un
+Function ${un}DarkShow
+  SetCtlColors $HWNDPARENT "FFFFFF" "191919"
+  GetDlgItem $0 $HWNDPARENT 1028   ; branding text
+  SetCtlColors $0 "808080" "191919"
+  FindWindow $0 "#32770" "" $HWNDPARENT   ; the page
+  SetCtlColors $0 "FFFFFF" "191919"
+  StrCpy $1 0
+  dark_loop:
+    FindWindow $1 "" "" $0 $1
+    StrCmp $1 0 dark_done
+    System::Call 'user32::GetClassName(ir1, t .r2, i 64)'
+    ${If} $2 == "Static"
+      SetCtlColors $1 "FFFFFF" "transparent"
+    ${ElseIf} $2 == "Button"
+      ; check boxes and radio buttons: drop the visual style so that the colours are used
+      System::Call 'user32::GetWindowLong(ir1, i -16) i .r3'
+      IntOp $3 $3 & 0xF
+      ${If} $3 = 2
+      ${OrIf} $3 = 3
+      ${OrIf} $3 = 4
+      ${OrIf} $3 = 5
+      ${OrIf} $3 = 6
+      ${OrIf} $3 = 7   ; group box
+      ${OrIf} $3 = 9
+        System::Call 'uxtheme::SetWindowTheme(ir1, w "", w "")'
+        SetCtlColors $1 "FFFFFF" "transparent"
+      ${EndIf}
+    ${ElseIf} $2 == "Edit"
+      SetCtlColors $1 "FFFFFF" "2D2D2D"
+    ${ElseIf} $2 == "SysListView32"
+      SendMessage $1 0x1001 0 0x191919   ; LVM_SETBKCOLOR
+      SendMessage $1 0x1026 0 0x191919   ; LVM_SETTEXTBKCOLOR
+      SendMessage $1 0x1024 0 0xFFFFFF   ; LVM_SETTEXTCOLOR
+    ${ElseIf} $2 == "SysTreeView32"
+      SendMessage $1 0x111D 0 0x191919   ; TVM_SETBKCOLOR
+      SendMessage $1 0x111E 0 0xFFFFFF   ; TVM_SETTEXTCOLOR
+    ${ElseIf} $2 == "msctls_progress32"
+      System::Call 'uxtheme::SetWindowTheme(ir1, w "", w "")'
+      SendMessage $1 0x2001 0 0x333333   ; PBM_SETBKCOLOR
+      SendMessage $1 0x409 0 0xBCBCBC    ; PBM_SETBARCOLOR
+    ${EndIf}
+    Goto dark_loop
+  dark_done:
+FunctionEnd
+!macroend
+!insertmacro DEFINE_DARK ""
+!insertmacro DEFINE_DARK "un."
+!endif
+
+!macro PAGE_HOOK fn
+  !ifdef DARK
+    !define MUI_PAGE_CUSTOMFUNCTION_SHOW ${fn}
+  !endif
+!macroend
+
 !define MUI_WELCOMEPAGE_TITLE "Welcome to the ${APPNAME} Setup"
 !define MUI_WELCOMEPAGE_TEXT "This setup will guide you through the installation of ${APPNAME} ${PKG_VERSION}.$\r$\n$\r$\nClick Next to continue."
 
@@ -72,15 +152,22 @@ SetCompressor /SOLID lzma
 !define MUI_FINISHPAGE_RUN_NOTCHECKED
 !define MUI_COMPONENTSPAGE_SMALLDESC
 
+!insertmacro PAGE_HOOK DarkShow
 !insertmacro MUI_PAGE_WELCOME
 !ifdef UPDATER_DIR
+  !insertmacro PAGE_HOOK DarkShow
   !insertmacro MUI_PAGE_COMPONENTS
 !endif
+!insertmacro PAGE_HOOK DarkShow
 !insertmacro MUI_PAGE_DIRECTORY
+!insertmacro PAGE_HOOK DarkShow
 !insertmacro MUI_PAGE_INSTFILES
+!insertmacro PAGE_HOOK DarkShow
 !insertmacro MUI_PAGE_FINISH
 
+!insertmacro PAGE_HOOK un.DarkShow
 !insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro PAGE_HOOK un.DarkShow
 !insertmacro MUI_UNPAGE_INSTFILES
 
 !insertmacro MUI_LANGUAGE "English"

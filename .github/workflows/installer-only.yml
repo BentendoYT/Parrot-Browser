@@ -1,0 +1,78 @@
+name: Rebuild installer from an existing build
+
+# Rebuilds only the installer (a few minutes) from the package of an earlier successful
+# "Parrot - Windows Build" run, e.g. after changing the installer artwork or the setup script.
+# The package artifact "parrot-windows" of that run is kept for 7 days.
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Run ID of a successful 'Parrot - Windows Build' (the number at the end of the run URL)"
+        required: true
+        type: string
+      dark:
+        description: "Dark installer colour scheme"
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  installer:
+    name: Build installer
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Checkout Parrot-WinUpdater
+        uses: actions/checkout@v6
+        with:
+          repository: BentendoYT/Parrot-winupdater
+          path: winupdater
+
+      - name: Download packaged build
+        uses: actions/download-artifact@v4
+        with:
+          name: parrot-windows
+          path: dist
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Install NSIS
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nsis unzip
+
+      - name: Build installer
+        shell: bash
+        env:
+          UPDATER_DIR: ${{ github.workspace }}/winupdater
+          INSTALLER_DARK: ${{ inputs.dark && '1' || '0' }}
+        run: |
+          shopt -s nullglob
+          echo "WinUpdater commit: $(git -C winupdater rev-parse HEAD)"
+          zips=(dist/parrot-*-windows-x86_64-package.zip)
+          if [ "${#zips[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one parrot-*-windows-x86_64-package.zip, found ${#zips[@]}"
+            ls -l dist
+            exit 1
+          fi
+          bash scripts/build-installer.sh "${zips[0]}" installer-out
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: parrot-installer
+          path: |
+            installer-out/parrot-*-setup.exe
+            installer-out/sha256sums.txt
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
