@@ -1,0 +1,345 @@
+name: Parrot - Build all platforms
+
+# Builds the browser for Windows (x64, ARM64) and Linux (x64, ARM64) in parallel, then builds the
+# Windows installers (NSIS) and the x64 MSI from the packages. With "publish_release" it finally
+# creates one GitHub release (tag = ProductVersion of parrot.exe) with everything plus sha256sums.txt;
+# Parrot-WinUpdater downloads the Windows installer from that release.
+#
+# Every platform is a separate job on its own runner and takes hours. Use "platforms" to build only one.
+
+on:
+  workflow_dispatch:
+    inputs:
+      platforms:
+        description: "What to build"
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - windows-x86_64
+          - windows-arm64
+          - linux-x86_64
+          - linux-arm64
+      parallel_jobs:
+        description: "MOZ_PARALLEL_BUILD (number of parallel compile jobs). Lower it if the runner runs out of memory (OOM)."
+        required: false
+        default: "3"
+        type: string
+      debug_symbols:
+        description: "Keep debug symbols (needs much more RAM/disk; leave off for normal builds)"
+        required: false
+        default: false
+        type: boolean
+      publish_release:
+        description: "After successful builds, publish a GitHub release with all artifacts (needs windows-x86_64 for the tag)"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.m.outputs.matrix }}
+      windows: ${{ steps.m.outputs.windows }}
+      has_windows: ${{ steps.m.outputs.has_windows }}
+    steps:
+      - name: Select platforms
+        id: m
+        shell: bash
+        env:
+          SELECTION: ${{ inputs.platforms }}
+          RELEASE: ${{ inputs.publish_release }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+
+          every = {
+              "windows-x86_64": {"id": "windows-x86_64", "target": "windows", "arch": "x86_64", "make": "test-windows"},
+              "windows-arm64": {"id": "windows-arm64", "target": "windows", "arch": "arm64", "make": "test-windows-arm64"},
+              "linux-x86_64": {"id": "linux-x86_64", "target": "linux", "arch": "x86_64", "make": "test-linux"},
+              "linux-arm64": {"id": "linux-arm64", "target": "linux", "arch": "arm64", "make": "test-linux-arm64"},
+          }
+          selection = os.environ["SELECTION"]
+          chosen = list(every) if selection == "all" else [selection]
+          if selection not in ("all", *every):
+              raise SystemExit(f"::error::unknown platform selection {selection!r}")
+          if os.environ["RELEASE"] == "true" and "windows-x86_64" not in chosen:
+              raise SystemExit("::error::publish_release needs windows-x86_64 (the release tag is read from its parrot.exe)")
+
+          windows = [every[c] for c in chosen if every[c]["target"] == "windows"]
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write("matrix=" + json.dumps([every[c] for c in chosen]) + "\n")
+              out.write("windows=" + json.dumps(windows) + "\n")
+              out.write("has_windows=" + ("true" if windows else "false") + "\n")
+          print("Building:", ", ".join(chosen))
+          PY
+
+  build:
+    name: Build ${{ matrix.id }}
+    needs: plan
+    runs-on: ${{ vars.BUILD_RUNNER || 'ubuntu-24.04' }}
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
+
+    container:
+      image: librewolf.dev/librewolf/bsys6:${{ matrix.target }}
+
+    env:
+      HOME: /root
+      MOZBUILD_STATE_PATH: /root/.mozbuild
+      DIAG_DIR: ci-diagnostics
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Environment snapshot
+        shell: bash
+        run: |
+          mkdir -p "$DIAG_DIR"
+          {
+            echo "== uname =="; uname -a
+            echo "== nproc =="; nproc
+            echo "== meminfo =="; grep -E 'MemTotal|MemAvailable|SwapTotal|SwapFree' /proc/meminfo
+            echo "== disk =="; df -h . /tmp /root 2>/dev/null
+            echo "== bsys6 HEAD =="; git ls-remote https://librewolf.dev/librewolf/bsys6.git HEAD 2>&1 || true
+          } 2>&1 | tee "$DIAG_DIR/environment.txt"
+
+      - name: Fetch Firefox source
+        run: make fetch FF_CHANNEL=releases FF_BUILD=build1
+
+      - name: Apply CI resource tuning to mozconfig
+        shell: bash
+        env:
+          PARALLEL_JOBS: ${{ inputs.parallel_jobs }}
+          KEEP_DEBUG_SYMBOLS: ${{ inputs.debug_symbols }}
+        run: |
+          [[ "$PARALLEL_JOBS" =~ ^[1-9][0-9]?$ ]] || { echo "parallel_jobs must be a number"; exit 1; }
+          {
+            echo
+            echo "# --- CI resource tuning (appended by build-all.yml) ---"
+            echo "mk_add_options MOZ_PARALLEL_BUILD=${PARALLEL_JOBS}"
+            if [ "$KEEP_DEBUG_SYMBOLS" != "true" ]; then
+              echo "ac_add_options --disable-debug-symbols"
+            fi
+          } >> assets/mozconfig.new
+          tail -n 6 assets/mozconfig.new
+
+      - name: Build package
+        shell: bash
+        env:
+          MAKE_TARGET: ${{ matrix.make }}
+        run: |
+          python3 scripts/ci-monitor.py run "$DIAG_DIR" 10 &
+          MON_PID=$!
+          trap 'kill "$MON_PID" 2>/dev/null || true; wait "$MON_PID" 2>/dev/null || true' EXIT
+          make "$MAKE_TARGET" 2>&1 | tee "$DIAG_DIR/build.log"
+
+      - name: Collect diagnostics
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p "$DIAG_DIR/mozbuild"
+          # testing.mk only runs `rm -rf bsys6` after success, so on failure this still exists.
+          src=$(ls -d bsys6/SOURCEDIR/librewolf-*/ 2>/dev/null | head -n1 || true)
+          if [ -n "$src" ]; then
+            cp -v "${src}mozconfig" "$DIAG_DIR/mozconfig.used" || true
+            for obj in "${src}"obj-*; do
+              [ -d "$obj/.mozbuild/logs" ] && cp -r "$obj/.mozbuild/logs" "$DIAG_DIR/mozbuild/" || true
+              [ -f "$obj/config.log" ] && cp "$obj/config.log" "$DIAG_DIR/mozbuild/" || true
+              du -sh "$obj" >> "$DIAG_DIR/sizes.txt" 2>/dev/null || true
+            done
+          fi
+          cat /sys/fs/cgroup/memory.events > "$DIAG_DIR/cgroup-memory-events.txt" 2>/dev/null || true
+          cat /sys/fs/cgroup/memory.peak   > "$DIAG_DIR/cgroup-memory-peak.txt"   2>/dev/null || true
+          df -h > "$DIAG_DIR/df-final.txt" || true
+          if [ -f "$DIAG_DIR/build.log" ]; then
+            tail -n 3000 "$DIAG_DIR/build.log" > "$DIAG_DIR/build-tail.log"
+            grep -nEi 'signal: 9|SIGKILL|Killed|No space left|out of memory' "$DIAG_DIR/build.log" | head -n 200 > "$DIAG_DIR/build-errors.txt" || true
+            gzip -9 "$DIAG_DIR/build.log"
+          fi
+          python3 scripts/ci-monitor.py summary "$DIAG_DIR" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-diagnostics-${{ matrix.id }}
+          path: ci-diagnostics/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Rename package to Parrot
+        shell: bash
+        run: |
+          shopt -s nullglob
+          for f in librewolf-*.zip librewolf-*.tar.xz; do
+            mv -v "$f" "parrot-${f#librewolf-}"
+          done
+
+      - name: Verify package
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+          ARCH: ${{ matrix.arch }}
+        run: |
+          shopt -s nullglob
+          files=(parrot-*-package.zip parrot-*-package.tar.xz)
+          if [ "${#files[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one parrot-*-package.* file, found ${#files[@]}"
+            ls -l
+            exit 1
+          fi
+          python3 scripts/verify-package.py "${files[0]}" "$TARGET" "$ARCH"
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: parrot-${{ matrix.id }}
+          path: |
+            parrot-*-package.zip
+            parrot-*-package.tar.xz
+            mozconfig.txt
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+  package-windows:
+    name: Installer ${{ matrix.id }}
+    needs: [plan, build]
+    if: ${{ !cancelled() && needs.plan.outputs.has_windows == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.windows) }}
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Checkout Parrot-WinUpdater
+        uses: actions/checkout@v6
+        with:
+          repository: BentendoYT/Parrot-winupdater
+          path: winupdater
+
+      - name: Download package
+        uses: actions/download-artifact@v4
+        with:
+          name: parrot-${{ matrix.id }}
+          path: dist
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nsis unzip wixl
+
+      - name: Build installer
+        shell: bash
+        env:
+          UPDATER_DIR: ${{ github.workspace }}/winupdater
+        run: |
+          shopt -s nullglob
+          echo "WinUpdater commit: $(git -C winupdater rev-parse HEAD)"
+          zips=(dist/parrot-*-windows-*-package.zip)
+          if [ "${#zips[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one windows package zip, found ${#zips[@]}"
+            ls -l dist
+            exit 1
+          fi
+          bash scripts/build-installer.sh "${zips[0]}" installer-out
+
+      - name: Build MSI
+        if: ${{ matrix.arch == 'x86_64' }}
+        shell: bash
+        run: |
+          shopt -s nullglob
+          zips=(dist/parrot-*-windows-x86_64-package.zip)
+          bash scripts/build-msi.sh "${zips[0]}" installer-out
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: parrot-installer-${{ matrix.id }}
+          path: |
+            installer-out/parrot-*-setup.exe
+            installer-out/parrot-*.msi
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+  release:
+    name: Publish GitHub release
+    needs: [plan, build, package-windows]
+    if: ${{ !cancelled() && inputs.publish_release && needs.build.result == 'success' && needs.package-windows.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Download packages and installers
+        uses: actions/download-artifact@v4
+        with:
+          # parrot-windows-*, parrot-linux-* (packages) and parrot-installer-* (setup + msi);
+          # the diagnostics artifacts are named build-diagnostics-* and are not matched.
+          pattern: parrot-*
+          merge-multiple: true
+          path: dist
+
+      - name: Create release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          rm -f dist/mozconfig.txt
+          ls -l dist
+
+          zips=(dist/parrot-*-windows-x86_64-package.zip)
+          if [ "${#zips[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one windows x86_64 package, found ${#zips[@]}"
+            exit 1
+          fi
+
+          python3 -m venv .venv
+          .venv/bin/pip install --quiet pefile
+          tag="$(.venv/bin/python scripts/exe-version.py "${zips[0]}")"
+          if [ -z "$tag" ]; then
+            echo "::error::Could not read ProductVersion from parrot.exe"
+            exit 1
+          fi
+          echo "Release tag (= ProductVersion of parrot.exe): $tag"
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "::error::Release $tag already exists. Parrot-WinUpdater only sees a new version when ProductVersion of parrot.exe changes."
+            exit 1
+          fi
+
+          assets=(dist/parrot-*-setup.exe dist/parrot-*.msi dist/parrot-*-package.zip dist/parrot-*-package.tar.xz)
+          # "<sha256>  <file>" lines, the format Parrot-WinUpdater reads from sha256sums.txt
+          (cd dist && sha256sum "${assets[@]#dist/}" > sha256sums.txt)
+          cat dist/sha256sums.txt
+
+          gh release create "$tag" \
+            --target "$GITHUB_SHA" \
+            --title "Parrot Browser $tag" \
+            --notes "Parrot Browser $tag. Unsigned builds: Windows SmartScreen may warn. Verify downloads with sha256sums.txt." \
+            --latest \
+            "${assets[@]}" dist/sha256sums.txt

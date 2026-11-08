@@ -31,6 +31,9 @@ ManifestSupportedOS Win10
 !ifndef EST_SIZE_KB
   !define EST_SIZE_KB 300000
 !endif
+!ifndef PKG_ARCH
+  !define PKG_ARCH "x86_64"   ; or "arm64"
+!endif
 
 !define APPNAME "Parrot Browser"
 !define PROGNAME "parrot"
@@ -75,7 +78,7 @@ SetCompressor /SOLID lzma
   !define MUI_HEADERIMAGE_RIGHT
 !endif
 
-BrandingText "${APPNAME} ${PKG_VERSION}"
+BrandingText "${APPNAME} ${PKG_VERSION} (${PKG_ARCH})"
 
 !ifdef DARK
   ; Header colours come from MUI; the page bodies are coloured in DarkShow below.
@@ -235,9 +238,9 @@ Section "${APPNAME}" main
 !ifdef VC_REDIST
   ; Visual C++ runtime (no-op when a newer one is installed: exit code 1638; 3010 = reboot suggested)
   InitPluginsDir
-  File "/oname=$PLUGINSDIR\vc_redist.x64.exe" "${VC_REDIST}"
+  File "/oname=$PLUGINSDIR\vc_redist.exe" "${VC_REDIST}"
   DetailPrint "Installing Visual C++ Redistributable..."
-  ExecWait '"$PLUGINSDIR\vc_redist.x64.exe" /install /quiet /norestart' $0
+  ExecWait '"$PLUGINSDIR\vc_redist.exe" /install /quiet /norestart' $0
   DetailPrint "Visual C++ Redistributable finished (exit code $0)"
 !endif
 
@@ -318,6 +321,18 @@ Function .onInit
     MessageBox MB_ICONSTOP "${APPNAME} requires Windows 10 or newer."
     Abort
   ${EndIf}
+
+!if "${PKG_ARCH}" == "arm64"
+  ; The ARM64 build only runs on Windows for ARM64 (native machine type 0xAA64 = 43620).
+  System::Call 'kernel32::GetCurrentProcess() i .r0'
+  System::Call 'kernel32::IsWow64Process2(i r0, *&i2 .r1, *&i2 .r2) i .r3'
+  ${If} $3 = 0
+  ${OrIf} $2 <> 43620
+    MessageBox MB_ICONSTOP "This is the ARM64 version of ${APPNAME}. It needs Windows on an ARM64 device, please use the x64 version on this computer."
+    SetErrorLevel 3
+    Abort
+  ${EndIf}
+!endif
 
   SetRegView 64
   ; Keep the existing install location on updates, but never override an explicit /D=

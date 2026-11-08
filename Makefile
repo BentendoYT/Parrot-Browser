@@ -1,6 +1,6 @@
 docker_targets = docker-build-image docker-run-build-job docker-remove-image
 woodpecker_targets = fetch-upstream-woodpecker check-patchfail-woodpecker
-testing_targets = full-test test test-linux test-macos test-windows
+testing_targets = full-test test test-linux test-macos test-windows test-windows-arm64 test-linux-arm64
 .PHONY : help moztree check all clean veryclean distclean patches dir bootstrap fetch build package run setup-wasi check-patchfail check-fuzz fixfuzz $(docker_targets) $(woodpecker_targets) $(testing_targets)
 
 version := $(shell cat ./version)
@@ -215,3 +215,9 @@ test-macos: $(lw_source_tarball)
 
 test-windows: $(lw_source_tarball)
 	${MAKE} -f assets/testing.mk bsys6_x86_64_windows_zip_artifact
+
+test-windows-arm64: $(lw_source_tarball)
+	${MAKE} -f assets/testing.mk bsys6_artifact BSYS_TARGET=windows BSYS_ARCH=arm64 PKG_EXT=zip
+
+test-linux-arm64: $(lw_source_tarball)
+	${MAKE} -f assets/testing.mk bsys6_artifact BSYS_TARGET=linux BSYS_ARCH=arm64 PKG_EXT=xz
