@@ -28,7 +28,8 @@ jobs:
     timeout-minutes: 360
 
     container:
-      image: librewolf.dev/librewolf/bsys6:windows
+      # Pinned to a known-good image (Windows SDK present). The moving :windows tag broke twice.
+      image: librewolf.dev/librewolf/bsys6:windows@sha256:0db4cc6efa4ac9f6e45c40bdb0d6d8d4aa5cfd11bc34ae922b54e53ad5e31744
 
     env:
       HOME: /root
@@ -38,6 +39,18 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v6
+
+      - name: Check Windows SDK in the build image
+        shell: bash
+        run: |
+          kits="/root/.mozbuild/win-cross/vs/Windows Kits/10"
+          if ! ls "$kits"/Include/*/um/winsdkver.h >/dev/null 2>&1 || ! ls "$kits"/Lib/*/um >/dev/null 2>&1; then
+            echo "::error::The build image has no usable Windows SDK ($kits). LibreWolf probably rebuilt the image incompletely. Pin an older image digest or run again later."
+            ls -la /root/.mozbuild/win-cross /root/.mozbuild/win-cross/vs 2>&1 || true
+            exit 1
+          fi
+          echo "Windows SDK found:"
+          ls "$kits/Include"
 
       - name: Environment snapshot
         shell: bash
