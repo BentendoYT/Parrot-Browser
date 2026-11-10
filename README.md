@@ -1,217 +1,105 @@
-> [!NOTE]
-> **Forked from [LibreWolf](https://librewolf.dev/librewolf/source)**
+ <p align="center">
+  <img src="./patches/pref-pane/ParrotLogo.png" width="60%" alt="Parrot Browser">
+</p>
 
----
-
-<div align="center">
-
-# <img src="./patches/pref-pane/ParrotLogo.png" width="90%" style="background: transparent;">
-
-A privacy-focused Firefox fork with a monochrome design, based on LibreWolf.
+<h3 align="center">Finally, a privacy-focused browser that does the job.</h3>
 
 <p align="center">
+  <a href="https://parrot.bentendo.dev/download"><img src="https://img.shields.io/badge/Download-ffffff.svg?style=for-the-badge&labelColor=ffffff" alt="Download" border="0"></a>
   <a href="https://github.com/BentendoYT/Parrot-Browser/releases"><img src="https://img.shields.io/badge/Releases-2b2a33.svg?style=for-the-badge&logo=github&logoColor=white" alt="Releases" border="0"></a>
   <a href="https://bentendo.dev"><img src="https://img.shields.io/badge/Website-2b2a33.svg?style=for-the-badge&logo=htmx&logoColor=white" alt="Website" border="0"></a>
 </p>
 
-</div>
-
-This repository contains everything that makes up Parrot: the patches, the theming,
-the preferences (in [settings/](./settings)), the installer and the scripts, Makefile and
-GitHub Actions workflows that build it.
-
 ## About
 
-Parrot starts from [LibreWolf](https://librewolf.net), which in turn is a hardened build of
-Mozilla Firefox, and keeps its privacy and security defaults. The Firefox version it is based on is
-stored in [`version`](./version).
+Parrot is a privacy-focused browser based on LibreWolf and Firefox. It combines strong privacy defaults with a clean interface and a few practical improvements.
 
-### What Parrot changes
+The goal is simple: make private browsing feel like the normal browsing experience.
 
-- **Name and executable.** The app is called Parrot and the program is `parrot.exe` on Windows
-  (`parrot` on Linux). Internal names that other parts depend on, for example the profile folder
-  and some IDs, still use LibreWolf's names on purpose.
-- **Monochrome design.** Purple and blue accents are replaced by neutral white and gray tones, in both
-  the new Nova interface and the classic one. This is done by patches and by the
-  scripts [`parrot-nova-colors.py`](./scripts/parrot-nova-colors.py),
-  [`parrot-ui-polish.py`](./scripts/parrot-ui-polish.py) and
-  [`parrot-settings-fixes.py`](./scripts/parrot-settings-fixes.py).
-- **Parrot links.** Help and support links lead to the Parrot
-  [wiki](https://github.com/BentendoYT/Parrot-Browser/wiki/FAQ) and issue tracker instead of LibreWolf's pages.
-- **Windows installer and updater.** A dark-themed installer, an MSI package for managed installs and
-  [Parrot-WinUpdater](https://github.com/BentendoYT/Parrot-winupdater), see [Install](#install).
-- **Own build pipeline.** Everything is built by [GitHub Actions](./.github/workflows)
-  for Windows (x64, ARM64) and Linux (x64, ARM64).
+## Features
 
-### Defaults inherited from LibreWolf
+- **Privacy-focused defaults:** Telemetry, sponsored suggestions and unnecessary background services are disabled.
+- **Fingerprinting protection:** Privacy protections are enabled by default.
+- **HTTPS-only mode:** Prefer secure connections whenever possible.
+- **Monochrome design:** Purple and blue accents are replaced with neutral white and gray tones in both the Nova and classic interfaces.
+- **Polished interface:** Small UI improvements and fixes throughout the browser.
 
-- Telemetry and studies are disabled, and so is the built-in Firefox updater.
-- Fingerprinting resistance (`privacy.resistFingerprinting`) is on by default.
-- HTTPS-only mode is enabled and sponsored or web suggestions are off.
-- uBlock Origin is installed by policy.
+## Download
 
-The complete list is in [`settings/parrot.cfg`](./settings/parrot.cfg) and
-[`settings/distribution/policies.json`](./settings/distribution/policies.json).
+Available builds can be found on the [Releases page](https://github.com/BentendoYT/Parrot-Browser/releases).
 
-## Install
+| Platform | Architecture | Package |
+| --- | --- | --- |
+| Windows | x64 | Installer, MSI and ZIP |
+| Windows | ARM64 | Installer and ZIP |
+| Linux | x64 | TAR.XZ |
+| Linux | ARM64 | TAR.XZ |
 
-Get the files from the [Releases](https://github.com/BentendoYT/Parrot-Browser/releases) page.
-Verify a download with the checksums in `sha256sums.txt`.
+For installation instructions, see the [FAQ](https://github.com/BentendoYT/Parrot-Browser/wiki/FAQ).
 
-| File | What it is |
-| --- | --- |
-| `parrot-<version>-windows-x86_64-setup.exe` | Windows installer for 64-bit Intel/AMD PCs |
-| `parrot-<version>-windows-arm64-setup.exe` | Windows installer for ARM64 PCs (only installs on ARM64 Windows) |
-| `parrot-<version>-windows-x86_64.msi` | MSI package for managed installs (x64 only) |
-| `parrot-<version>-windows-<arch>-package.zip` | The unpacked Windows build, without an installer |
-| `parrot-<version>-linux-<arch>-package.tar.xz` | Linux build as a tarball |
+## Installation
 
-The installer works per machine and needs administrator rights. For unattended installs use
-`parrot-<version>-windows-x86_64-setup.exe /S` (optionally with `/D=<folder>` as the last argument)
-or `msiexec /i parrot-<version>-windows-x86_64.msi /qn`.
+### Windows
 
-> [!NOTE]
-> The builds are not code-signed yet, so Windows SmartScreen may show a warning.
-> Windows x64 is the main, best tested target. The ARM64 and Linux builds are new.
+Run the installer and follow the setup instructions. The standard installer supports system-wide installation and requires administrator privileges.
 
-### Updates
+For silent installation:
 
-The built-in Firefox updater is disabled. On Windows, [Parrot-WinUpdater](https://github.com/BentendoYT/Parrot-winupdater)
-can update Parrot for you. It is an optional component of the installer and checks the
-[Releases](https://github.com/BentendoYT/Parrot-Browser/releases) page. It replaces Parrot by running
-the newest setup, so do not use it on top of an MSI installation. Updating the MSI works by installing
-the newer MSI.
-
-## How it works
-
-```mermaid
-graph LR
-    FF(Firefox source) -->|make fetch| SRC
-    subgraph Repo [This repository]
-        PATCH(Patches, theming,<br>settings, scripts)
-        SRC(Patched source tree)
-        PATCH --> SRC
-    end
-    SRC --> BSYS6(bsys6<br>Docker build images)
-    BSYS6 --> WIN(Windows x64 / ARM64<br>package)
-    BSYS6 --> LIN(Linux x64 / ARM64<br>tarball)
-    WIN --> SETUP(Installer and MSI)
-    SETUP --> REL(GitHub release)
-    LIN --> REL
-    REL --> UPD(Parrot-WinUpdater)
+```powershell
+Parrot-Setup.exe /S
 ```
 
-1. `make fetch` downloads the Firefox source named in [`version`](./version).
-2. [`scripts/librewolf-patches.py`](./scripts/librewolf-patches.py) applies the patches listed in
-   [`assets/patches.txt`](./assets/patches.txt), copies the theming from [`themes/`](./themes) and runs the
-   Parrot scripts listed above. They are written to be re-runnable.
-3. The tree is built with LibreWolf's [bsys6](https://librewolf.dev/librewolf/bsys6) Docker images, which
-   cross-compile the Windows and Linux builds. The compiler options are in
-   [`assets/mozconfig.new`](./assets/mozconfig.new).
-4. The Windows packages are turned into an installer
-   ([`assets/installer`](./assets/installer), built with NSIS) and an MSI.
-5. A release job publishes everything. Its tag is the version stored in `parrot.exe`,
-   which is what Parrot-WinUpdater compares against.
+For MSI packages:
 
-### Repository layout
-
-| Path | Contents |
-| --- | --- |
-| [`patches/`](./patches) | Patches for the Firefox source, in the order of [`assets/patches.txt`](./assets/patches.txt) |
-| [`themes/`](./themes) | Branding and theming files that are copied into the source tree |
-| [`settings/`](./settings) | Default preferences (`parrot.cfg`) and policies |
-| [`scripts/`](./scripts) | Patch script, helpers and the installer and package scripts |
-| [`assets/`](./assets) | Build configuration, icons and the installer |
-| [`l10n/`](./l10n) | Localization files |
-| [`.github/workflows/`](./.github/workflows) | The build, installer and release workflows |
-
-## Build
-
-### Build: GitHub Actions
-
-Fork the repository and start a workflow from the **Actions** tab:
-
-| Workflow | What it does |
-| --- | --- |
-| **Parrot - Build all platforms** | Builds Windows x64, Windows ARM64, Linux x64 and Linux ARM64 (or just one), then the Windows installers and the x64 MSI. With `publish_release` it publishes a GitHub release. |
-| **Parrot - Windows Build** | The original Windows x64 build with installer. |
-| **Rebuild installer from an existing build** | Rebuilds only the installer from the package of an earlier run, in a few minutes. |
-| **Diagnose Windows build image** | Checks the Windows build image (Windows SDK, toolchain) without building. |
-
-Every platform is a separate job on its own runner and takes hours. The Windows jobs use a pinned
-build image, see the comment in [`build-all.yml`](./.github/workflows/build-all.yml).
-
-### Build: Linux, from this repository
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/BentendoYT/Parrot-Browser.git
-   cd Parrot-Browser
-   ```
-
-2. Fetch and patch the source, and bootstrap your system. You only have to bootstrap once:
-
-   ```bash
-   make dir && make bootstrap
-   ```
-
-3. Build and package or run Parrot:
-
-   ```bash
-   make build && make package
-   # or
-   make build && make run
-   ```
-
-> [!NOTE]
-> The Windows and ARM64 builds are made with the cross-compiling Docker images in GitHub Actions.
-> Building them on your own machine is not documented here.
-
-## Development
-
-### Creating a patch
-
-The easiest way to make a patch is to work in the patched source folder:
-
-```bash
-make fetch
-./scripts/git-patchtree.sh patches/<existing-patch>.patch
+```powershell
+msiexec /i Parrot.msi /qn
 ```
 
-Change the source the way you want, keeping in mind to `git add` new files and to commit before the
-diff. Then create the patch:
+### Linux
 
-```bash
-cd librewolf-$(cat version)
-git diff 4b825dc642cb6eb9a060e54bf8d69288fbee4904 HEAD > ../my-patch-name.patch
-```
+Extract the downloaded archive and follow the included instructions.
 
-That ID is the hash of the empty tree, so the patch contains everything since the first commit,
-which is called `initial`. Put the new patch into [`patches/`](./patches) and add it to
-[`assets/patches.txt`](./assets/patches.txt).
+## Updates
 
-For changes that are better expressed as an edit of a few lines than as a patch, the `parrot-*.py`
-scripts replace anchored text and refuse to run if an anchor is missing or ambiguous. That makes them
-safe against Firefox updates, and re-running them changes nothing.
+Parrot receives updates through new releases.
 
-### Contributing upstream
+Windows users can also use [Parrot WinUpdater](https://github.com/BentendoYT/Parrot-winupdater) to check for and install updates.
 
-Mozilla only accepts patches against Nightly. See the
-[Firefox Source Tree Documentation](https://firefox-source-docs.mozilla.org/) and the
-[contribution quick reference](https://firefox-source-docs.mozilla.org/contributing/contribution_quickref.html)
-for how to test your change and send it to Mozilla.
+## Building
 
-## Help
+Windows builds are produced automatically through GitHub Actions.
 
-- Questions: [FAQ](https://github.com/BentendoYT/Parrot-Browser/wiki/FAQ)
-- Bugs and ideas: [Issues](https://github.com/BentendoYT/Parrot-Browser/issues)
-- Website: [bentendo.dev](https://bentendo.dev)
+The repository also contains the patches and scripts used to customize the browser:
 
-## Credits and license
+| Path | Description |
+| --- | --- |
+| `assets/patches.txt` | Browser patch list |
+| `scripts/librewolf-patches.py` | Applies browser patches |
+| `scripts/parrot-nova-colors.py` | Customizes Nova colors |
+| `scripts/parrot-ui-polish.py` | Applies UI improvements |
+| `scripts/parrot-settings-fixes.py` | Applies settings fixes |
+| `settings/parrot.cfg` | Parrot configuration |
+| `settings/distribution/policies.json` | Browser policies |
 
-Parrot builds on the work of [LibreWolf](https://librewolf.net) and of
-[Mozilla](https://www.mozilla.org/firefox/), and on the privacy research behind LibreWolf's settings.
-Many thanks to everyone who contributed to them.
+For local Linux builds, refer to the [FAQ](https://github.com/BentendoYT/Parrot-Browser/wiki/FAQ).
 
-The code is licensed under the [Mozilla Public License 2.0](./LICENSE).
+## Contributing
+
+Contributions, bug reports and suggestions are welcome.
+
+- [Report a bug](https://github.com/BentendoYT/Parrot-Browser/issues)
+- [Request a feature](https://github.com/BentendoYT/Parrot-Browser/issues)
+- [View the FAQ](https://github.com/BentendoYT/Parrot-Browser/wiki/FAQ)
+
+## Credits
+
+Parrot builds on the work of:
+
+- [LibreWolf](https://librewolf.net/)
+- [Mozilla Firefox](https://www.mozilla.org/firefox/)
+
+## License
+
+Parrot is distributed under the [Mozilla Public License 2.0](./LICENSE).
+
+Copyright © 2026 Bentendo.
