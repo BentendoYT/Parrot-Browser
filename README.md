@@ -1,134 +1,162 @@
 > [!NOTE]
-> **Forked from [Librewolf](https://librewolf.dev/librewolf/source)**
+> **Forked from [LibreWolf](https://librewolf.dev/librewolf/source)**
 
 ---
 
- <div align="center">
-  
+<div align="center">
+
 # <img src="./patches/pref-pane/ParrotLogo.png" width="90%" style="background: transparent;">
 
+A privacy-focused Firefox fork with a monochrome design, based on LibreWolf.
 
-This repository contains all the patches and theming that make up Parrot,
-as well as the Parrot preferences (in [settings/](./settings)) and the
-scripts and Makefile to build Parrot.
+<p align="center">
+  <a href="https://github.com/BentendoYT/Parrot-Browser/releases"><img src="https://img.shields.io/badge/Releases-2b2a33.svg?style=for-the-badge&logo=github&logoColor=white" alt="Releases" border="0"></a>
+  <a href="https://bentendo.dev"><img src="https://img.shields.io/badge/Website-2b2a33.svg?style=for-the-badge&logo=htmx&logoColor=white" alt="Website" border="0"></a>
+</p>
 
 </div>
 
-## Infra
+This repository contains everything that makes up Parrot: the patches, the theming,
+the preferences (in [settings/](./settings)), the installer and the scripts, Makefile and
+GitHub Actions workflows that build it.
 
-### Overview
+## About
+
+Parrot starts from [LibreWolf](https://librewolf.net), which in turn is a hardened build of
+Mozilla Firefox, and keeps its privacy and security defaults. The Firefox version it is based on is
+stored in [`version`](./version).
+
+### What Parrot changes
+
+- **Name and executable.** The app is called Parrot and the program is `parrot.exe` on Windows
+  (`parrot` on Linux). Internal names that other parts depend on, for example the profile folder
+  and some IDs, still use LibreWolf's names on purpose.
+- **Monochrome design.** Purple and blue accents are replaced by neutral white and gray tones, in both
+  the new Nova interface and the classic one. This is done by patches and by the
+  scripts [`parrot-nova-colors.py`](./scripts/parrot-nova-colors.py),
+  [`parrot-ui-polish.py`](./scripts/parrot-ui-polish.py) and
+  [`parrot-settings-fixes.py`](./scripts/parrot-settings-fixes.py).
+- **Parrot links.** Help and support links lead to the Parrot
+  [wiki](https://github.com/BentendoYT/Parrot-Browser/wiki/FAQ) and issue tracker instead of LibreWolf's pages.
+- **Windows installer and updater.** A dark-themed installer, an MSI package for managed installs and
+  [Parrot-WinUpdater](https://github.com/BentendoYT/Parrot-winupdater), see [Install](#install).
+- **Own build pipeline.** Everything is built by [GitHub Actions](./.github/workflows)
+  for Windows (x64, ARM64) and Linux (x64, ARM64).
+
+### Defaults inherited from LibreWolf
+
+- Telemetry and studies are disabled, and so is the built-in Firefox updater.
+- Fingerprinting resistance (`privacy.resistFingerprinting`) is on by default.
+- HTTPS-only mode is enabled and sponsored or web suggestions are off.
+- uBlock Origin is installed by policy.
+
+The complete list is in [`settings/parrot.cfg`](./settings/parrot.cfg) and
+[`settings/distribution/policies.json`](./settings/distribution/policies.json).
+
+## Install
+
+Get the files from the [Releases](https://github.com/BentendoYT/Parrot-Browser/releases) page.
+Verify a download with the checksums in `sha256sums.txt`.
+
+| File | What it is |
+| --- | --- |
+| `parrot-<version>-windows-x86_64-setup.exe` | Windows installer for 64-bit Intel/AMD PCs |
+| `parrot-<version>-windows-arm64-setup.exe` | Windows installer for ARM64 PCs (only installs on ARM64 Windows) |
+| `parrot-<version>-windows-x86_64.msi` | MSI package for managed installs (x64 only) |
+| `parrot-<version>-windows-<arch>-package.zip` | The unpacked Windows build, without an installer |
+| `parrot-<version>-linux-<arch>-package.tar.xz` | Linux build as a tarball |
+
+The installer works per machine and needs administrator rights. For unattended installs use
+`parrot-<version>-windows-x86_64-setup.exe /S` (optionally with `/D=<folder>` as the last argument)
+or `msiexec /i parrot-<version>-windows-x86_64.msi /qn`.
+
+> [!NOTE]
+> The builds are not code-signed yet, so Windows SmartScreen may show a warning.
+> Windows x64 is the main, best tested target. The ARM64 and Linux builds are new.
+
+### Updates
+
+The built-in Firefox updater is disabled. On Windows, [Parrot-WinUpdater](https://github.com/BentendoYT/Parrot-winupdater)
+can update Parrot for you. It is an optional component of the installer and checks the
+[Releases](https://github.com/BentendoYT/Parrot-Browser/releases) page. It replaces Parrot by running
+the newest setup, so do not use it on top of an MSI installation. Updating the MSI works by installing
+the newer MSI.
+
+## How it works
 
 ```mermaid
 graph LR
-    FFSRC(Firefox Source)
-
-    FFSRC--Tarball--->Source
-
-    subgraph Parrot/
-    Website(Website<br><br>- Documentation<br>- FAQ)
-    subgraph Browser/
-        Source(Source<br><br>- Patches<br>- Theming<br>- Settings<br>- Weblate<br>- Build scripts)
-        bsys6(bsys6<br><br>New Docker building<br>repository)
-        AppImage
-        ArchGentoo["Arch / Gentoo"]
+    FF(Firefox source) -->|make fetch| SRC
+    subgraph Repo [This repository]
+        PATCH(Patches, theming,<br>settings, scripts)
+        SRC(Patched source tree)
+        PATCH --> SRC
     end
-    end
-    Website-->librewolf.net
-    Source--"Source tarball"-->bsys6
-    AppImage--".appimage"-->librewolf.net
-    bsys6--"Windows setup.exe"---->librewolf.net
-    bsys6--"Windows portable.zip"---->librewolf.net
-    bsys6--"Windows .msix"---->MS("Microsoft Store")
-    bsys6--"Windows .nupkg"---->Chocolatey
-    bsys6--"Linux binary tarball"---->Flathub
-    bsys6--"Linux binary tarball"--> AppImage
-    bsys6--"Linux .deb"---->repo.librewolf.net
-    bsys6--"Linux .rpm"---->repo.librewolf.net
-    bsys6--"Linux binary tarball<br>for 'librewolf-bin'"---->ArchGentoo
-    Source--"Source tarball<br>for 'librewolf'"---->ArchGentoo
-    ArchGentoo-->AUR_Overlay["AUR / Overlay"]
+    SRC --> BSYS6(bsys6<br>Docker build images)
+    BSYS6 --> WIN(Windows x64 / ARM64<br>package)
+    BSYS6 --> LIN(Linux x64 / ARM64<br>tarball)
+    WIN --> SETUP(Installer and MSI)
+    SETUP --> REL(GitHub release)
+    LIN --> REL
+    REL --> UPD(Parrot-WinUpdater)
 ```
 
-### Packages
+1. `make fetch` downloads the Firefox source named in [`version`](./version).
+2. [`scripts/librewolf-patches.py`](./scripts/librewolf-patches.py) applies the patches listed in
+   [`assets/patches.txt`](./assets/patches.txt), copies the theming from [`themes/`](./themes) and runs the
+   Parrot scripts listed above. They are written to be re-runnable.
+3. The tree is built with LibreWolf's [bsys6](https://librewolf.dev/librewolf/bsys6) Docker images, which
+   cross-compile the Windows and Linux builds. The compiler options are in
+   [`assets/mozconfig.new`](./assets/mozconfig.new).
+4. The Windows packages are turned into an installer
+   ([`assets/installer`](./assets/installer), built with NSIS) and an MSI.
+5. A release job publishes everything. Its tag is the version stored in `parrot.exe`,
+   which is what Parrot-WinUpdater compares against.
 
-These are the locations where people have their repositories and build artifacts.
+### Repository layout
 
-Active:
-
-- [Arch](https://archlinux.org/packages/extra/x86_64/librewolf/) - Arch Linux package
-- [BSYS6](https://librewolf.dev/librewolf/bsys6) - Linux Mint, Fedora,
-  Ubuntu, MacOS, portable and setup for Windows
-- [Gentoo](https://codeberg.org/librewolf/gentoo) - Gentoo GNU/Linux package
-
-Downstream:
-
-- [Alpine Linux](https://pkgs.alpinelinux.org/packages?name=librewolf&arch=)
-
-### Forks
-
-Previous:
-
-- [CachyOS Browser](https://github.com/cachyos/cachyos-browser-settings)
-- [FireDragon Browser](https://github.com/dr460nf1r3/firedragon-browser)
+| Path | Contents |
+| --- | --- |
+| [`patches/`](./patches) | Patches for the Firefox source, in the order of [`assets/patches.txt`](./assets/patches.txt) |
+| [`themes/`](./themes) | Branding and theming files that are copied into the source tree |
+| [`settings/`](./settings) | Default preferences (`parrot.cfg`) and policies |
+| [`scripts/`](./scripts) | Patch script, helpers and the installer and package scripts |
+| [`assets/`](./assets) | Build configuration, icons and the installer |
+| [`l10n/`](./l10n) | Localization files |
+| [`.github/workflows/`](./.github/workflows) | The build, installer and release workflows |
 
 ## Build
 
-There are two ways to build Parrot.
-You can either use the source tarball
-or compile directly with this repository.
+### Build: GitHub Actions
 
-### Build: Tarball
+Fork the repository and start a workflow from the **Actions** tab:
 
-1. Let's **[download the latest tarball](https://librewolf.dev/librewolf/source/releases)**.
-   This tarball is the latest produced by the [CI](https://librewolf.dev/librewolf/source/actions?workflow=source-release.yaml).
-   You can also check the `sha256sum` of the tarball there:
+| Workflow | What it does |
+| --- | --- |
+| **Parrot - Build all platforms** | Builds Windows x64, Windows ARM64, Linux x64 and Linux ARM64 (or just one), then the Windows installers and the x64 MSI. With `publish_release` it publishes a GitHub release. |
+| **Parrot - Windows Build** | The original Windows x64 build with installer. |
+| **Rebuild installer from an existing build** | Rebuilds only the installer from the package of an earlier run, in a few minutes. |
+| **Diagnose Windows build image** | Checks the Windows build image (Windows SDK, toolchain) without building. |
 
-   ```bash
-   tar xf <tarball>
-   cd <folder>
-   ```
+Every platform is a separate job on its own runner and takes hours. The Windows jobs use a pinned
+build image, see the comment in [`build-all.yml`](./.github/workflows/build-all.yml).
 
-2. Then, you have to bootstrap your system to be able to build Parrot.
-   You only have to do this one time.
-   It is done by running the following command:
+### Build: Linux, from this repository
 
-   ```bash
-   ./mach --no-interactive bootstrap --application-choice=browser
-   ```
-
-3. Build Parrot and then package or run it with the following commands:
+1. Clone the repository:
 
    ```bash
-   ./mach build && ./mach package
-   # or
-   ./mach build && ./mach run
+   git clone https://github.com/BentendoYT/Parrot-Browser.git
+   cd Parrot-Browser
    ```
 
-   > [!NOTE]
-   >
-   > To get all parameters of `./mach`, use:
-   >
-   > ```bash
-   > ./mach configure -- --help | less
-   > ```
-
-### Build: Repository
-
-1. Clone this repository with Git:
-
-   ```bash
-   git clone --recursive git@librewolf.dev:librewolf/source.git librewolf-source --depth=1 && cd librewolf-source
-   ```
-
-2. Build Parrot source code,
-   also you have to bootstrap your system to be able to build Parrot.
-   You only have to do this one time.
+2. Fetch and patch the source, and bootstrap your system. You only have to bootstrap once:
 
    ```bash
    make dir && make bootstrap
    ```
 
-3. Package Parrot or run it with the following commands:
+3. Build and package or run Parrot:
 
    ```bash
    make build && make package
@@ -136,120 +164,54 @@ or compile directly with this repository.
    make build && make run
    ```
 
-## Translations
-
-We use Weblate to localize all Parrot-specific strings.
-You can help us by translating Parrot into your language at
-<https://translate.codeberg.org/engage/librewolf>.
-Here is the current translation status:
-
-<a href="https://translate.codeberg.org/engage/librewolf/">
-  <img src="https://translate.codeberg.org/widget/librewolf/multi-auto.svg" alt="Translation status"/>
-</a>
+> [!NOTE]
+> The Windows and ARM64 builds are made with the cross-compiling Docker images in GitHub Actions.
+> Building them on your own machine is not documented here.
 
 ## Development
 
-### Development: Creating a patch
+### Creating a patch
 
-The easiest way to make patches is to go to the Parrot source folder:
-
-```bash
-cd librewolf-$(cat version)
-git init
-git add <path_to_file_you_changed>
-git commit -am initial-commit
-git diff > ../mypatch.patch
-```
-
-We have Gitter / Matrix rooms,
-and on the website we have links to the various issue trackers.
-
-### Development: Existing patches
-
-The easiest way to make patches is to go to the Parrot source folder:
+The easiest way to make a patch is to work in the patched source folder:
 
 ```bash
 make fetch
-./scripts/git-patchtree.sh patches/sed-patches/disable-pocket.patch
+./scripts/git-patchtree.sh patches/<existing-patch>.patch
 ```
 
-Now change the source tree the way you want,
-keeping in mind to `git add` new files.
-When done, you can create the new patch with:
+Change the source the way you want, keeping in mind to `git add` new files and to commit before the
+diff. Then create the patch:
 
 ```bash
-cd firefox-<version>
+cd librewolf-$(cat version)
 git diff 4b825dc642cb6eb9a060e54bf8d69288fbee4904 HEAD > ../my-patch-name.patch
 ```
 
-This ID is the hash value of the first commit, which is called `initial`.
-Don't forget to commit changes before doing this diff,
-or the patch will be incomplete.
+That ID is the hash of the empty tree, so the patch contains everything since the first commit,
+which is called `initial`. Put the new patch into [`patches/`](./patches) and add it to
+[`assets/patches.txt`](./assets/patches.txt).
 
-### Development: Creating a patch for problems in Mozilla's [Bugzilla](https://bugzilla.mozilla.org)
+For changes that are better expressed as an edit of a few lines than as a patch, the `parrot-*.py`
+scripts replace anchored text and refuse to run if an anchor is missing or ambiguous. That makes them
+safe against Firefox updates, and re-running them changes nothing.
 
-Well, first of all:
+### Contributing upstream
 
-- [Create an account](https://bugzilla.mozilla.org/createaccount.cgi).
-- Handy link: [Bugs Filed Today](https://bugzilla.mozilla.org/buglist.cgi?cmdtype=dorem&remaction=run&namedcmd=Bugs%20Filed%20Today&sharer_id=1&list_id=15939480).
-- The essential: [Firefox Source Tree Documentation](https://firefox-source-docs.mozilla.org/).
+Mozilla only accepts patches against Nightly. See the
+[Firefox Source Tree Documentation](https://firefox-source-docs.mozilla.org/) and the
+[contribution quick reference](https://firefox-source-docs.mozilla.org/contributing/contribution_quickref.html)
+for how to test your change and send it to Mozilla.
 
-Now that you have a patch in Parrot, that's not enough to upload to Mozilla.
-See, Mozilla only accepts patches against Nightly.
-So here is how to do that:
+## Help
 
-1. If you have not done so already,
-   create the `mozilla-unified` folder and build Firefox with it:
+- Questions: [FAQ](https://github.com/BentendoYT/Parrot-Browser/wiki/FAQ)
+- Bugs and ideas: [Issues](https://github.com/BentendoYT/Parrot-Browser/issues)
+- Website: [bentendo.dev](https://bentendo.dev)
 
-   ```bash
-   hg clone https://hg.mozilla.org/mozilla-unified && cd mozilla-unified
-   hg update
-   MOZBUILD_STATE_PATH=$HOME/.mozbuild ./mach --no-interactive bootstrap --application-choice=browser
-   ./mach build
-   ./mach run
-   ```
+## Credits and license
 
-2. If you skipped the previous step, you could ensure that you're up to date with:
+Parrot builds on the work of [LibreWolf](https://librewolf.net) and of
+[Mozilla](https://www.mozilla.org/firefox/), and on the privacy research behind LibreWolf's settings.
+Many thanks to everyone who contributed to them.
 
-   ```bash
-   cd mozilla-unified
-   hg pull && hg update
-   ```
-
-3. Now you can apply your patch to Nightly:
-
-   ```bash
-   patch -p1 -i ../mypatch.patch
-   ```
-
-4. Now, let Mercurial create the patch:
-
-   ```bash
-   hg diff > ../my-nightly-patch.patch
-   ```
-
-5. After this, it can be uploaded to Bugzilla.
-
-#### Development: Contributing
-
-Time to start hacking! You should join us on [Matrix](https://chat.mozilla.org),
-say hello in the [Introduction channel](https://chat.mozilla.org/#/room/#introduction:mozilla.org),
-and [find a bug to start working on](https://codetribute.mozilla.org).
-See the [Firefox Contributors' Quick Reference](https://firefox-source-docs.mozilla.org/contributing/contribution_quickref.html#firefox-contributors-quick-reference)
-to learn how to test your changes,
-send patches to Mozilla,
-update your source code locally, and more.
-
-## MacOS and Windows
-
-We understand, life isn't always fair 😺.
-The same steps as above apply you will just have to walk through
-the beginning part of the guides for:
-
-- [MacOS](https://firefox-source-docs.mozilla.org/setup/macos_build.html):
-  The cross-compiled Mac `.dmg` files are somewhat new.
-  They should work, perhaps with the exception of the `make setup-wasi` step.
-- [Windows](https://firefox-source-docs.mozilla.org/setup/windows_build.html):
-  Building on Windows is not very well tested.
-
-Help with testing these targets is always welcome.
+The code is licensed under the [Mozilla Public License 2.0](./LICENSE).
